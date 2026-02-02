@@ -1,11 +1,184 @@
 <!DOCTYPE html>
 <html lang="de" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
-    <title>DalZana Connect</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .radio-group {
+            margin-top: 10px;
+        }
+
+        .radio-option {
+            margin-bottom: 10px;
+        }
+
+        .radio-option input[type="radio"] {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .radio-option label {
+            display: inline;
+            margin-bottom: 0;
+            font-weight: 400;
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .form-section-title {
+            color: #667eea;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
+
 <body>
-    <h1 th:text="${message}">Hello World</h1>
-    <p>Projekt erfolgreich gestartet ✅</p>
+    <div class="login-container">
+        <h1>Login Form</h1>
+        <form action="/login" method="post">
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" placeholder="Enter your name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="surname">Surname</label>
+                <input type="text" id="surname" name="surname" placeholder="Enter your surname" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-section-title">Skills</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="java" name="skills" value="java" required>
+                        <label for="java">Java</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="python" name="skills" value="python">
+                        <label for="python">Python</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="javascript" name="skills" value="javascript">
+                        <label for="javascript">JavaScript</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="csharp" name="skills" value="csharp">
+                        <label for="csharp">C#</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="other" name="skills" value="other">
+                        <label for="other">Other</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="role">Role</label>
+                <select id="role" name="role" required>
+                    <option value="">Select a role</option>
+                    <option value="developer">Developer</option>
+                    <option value="designer">Designer</option>
+                    <option value="manager">Manager</option>
+                    <option value="analyst">Analyst</option>
+                    <option value="tester">Tester</option>
+                </select>
+            </div>
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
 </body>
+
 </html>
