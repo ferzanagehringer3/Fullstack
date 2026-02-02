@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chat Mockup</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; }
+    .app { height: 100vh; display: flex; }
+    .left { width: 240px; border-right: 1px solid #ddd; padding: 12px; }
+    .main { flex: 1; padding: 12px; display: flex; flex-direction: column; }
+    .teams button { display: block; width: 100%; margin: 6px 0; padding: 8px; text-align: left; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
+    .chat { flex: 1; padding: 12px 0; overflow: auto; }
+    .msg { margin: 6px 0; }
+    .composer { display: flex; gap: 8px; border-top: 1px solid #ddd; padding-top: 10px; }
+    input[type="text"] { flex: 1; padding: 8px; }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <!-- LEFT: Teams -->
+    <div class="left">
+      <h3>Teams</h3>
+      <button id="newTeamBtn">+ Create Team</button>
+
+      <div class="teams" id="teamList">
+        <button class="team" data-team="Team A">Team A</button>
+        <button class="team" data-team="Team B">Team B</button>
+        <button class="team" data-team="Team C">Team C</button>
+      </div>
+    </div>
+
+    <!-- CENTER: Chat -->
+    <div class="main">
+      <div class="header">
+        <h2 id="teamTitle">Team A</h2>
+        <button id="filesBtn">Files</button>
+      </div>
+
+      <div class="chat" id="chatBox">
+        <div class="msg"><b>Alice:</b> Hello team!</div>
+        <div class="msg"><b>Bob:</b> Hi!</div>
+      </div>
+
+      <form class="composer" id="chatForm">
+        <input id="messageInput" type="text" placeholder="Type a message..." />
+        <button type="submit">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Simple "Files" mockup -->
+  <dialog id="filesDialog">
+    <div style="padding:12px;">
+      <h3>Files</h3>
+      <input type="file" multiple />
+      <p style="margin-top:10px;">(File list would appear here)</p>
+      <button id="closeFiles">Close</button>
+    </div>
+  </dialog>
+
+  <script>
+    // Switch team title
+    document.getElementById("teamList").addEventListener("click", (e) => {
+      const btn = e.target.closest(".team");
+      if (!btn) return;
+      document.getElementById("teamTitle").textContent = btn.dataset.team;
+    });
+
+    // Create team (mock)
+    document.getElementById("newTeamBtn").addEventListener("click", () => {
+      const name = prompt("Team name?");
+      if (!name) return;
+      const btn = document.createElement("button");
+      btn.className = "team";
+      btn.dataset.team = name;
+      btn.textContent = name;
+      document.getElementById("teamList").appendChild(btn);
+    });
+
+    // Send message (mock)
+    document.getElementById("chatForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const input = document.getElementById("messageInput");
+      const text = input.value.trim();
+      if (!text) return;
+
+      const msg = document.createElement("div");
+      msg.className = "msg";
+      msg.innerHTML = "<b>You:</b> " + text;
+
+      const box = document.getElementById("chatBox");
+      box.appendChild(msg);
+      box.scrollTop = box.scrollHeight;
+      input.value = "";
+    });
+
+    // Files dialog
+    const filesDialog = document.getElementById("filesDialog");
+    document.getElementById("filesBtn").addEventListener("click", () => filesDialog.showModal());
+    document.getElementById("closeFiles").addEventListener("click", () => filesDialog.close());
+  </script>
+</body>
+</html>

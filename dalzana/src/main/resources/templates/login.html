@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Page</title>
+
+  <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
+  <link rel="stylesheet" th:href="@{/css/login.css}" href="/css/login.css">
+</head>
+
+<body class="login-page">
+  <div class="login-container">
+    <h1 class="page-title">DalZana Connect</h1>
+
+    <form th:action="@{/login}" method="post">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" placeholder="Enter your name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="surname">Nachname</label>
+        <input type="text" id="surname" name="surname" placeholder="Enter your surname" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-section-title">Fähigkeiten</label>
+        <div class="radio-group">
+          <div class="radio-option">
+            <input type="radio" id="java" name="skills" value="java" required>
+            <label for="java">Java</label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="python" name="skills" value="python">
+            <label for="python">Python</label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="javascript" name="skills" value="javascript">
+            <label for="javascript">JavaScript</label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="csharp" name="skills" value="csharp">
+            <label for="csharp">C#</label>
+          </div>
+          <div class="radio-option">
+            <input type="radio" id="other" name="skills" value="other">
+            <label for="other">Other</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="role">Role</label>
+        <select id="role" name="role" required>
+          <option value="">Select a role</option>
+          <option value="developer">Developer</option>
+          <option value="designer">Designer</option>
+          <option value="manager">Manager</option>
+          <option value="analyst">Analyst</option>
+          <option value="tester">Tester</option>
+        </select>
+      </div>
+
+      <button type="submit">Submit</button>
+    </form>
+  </div>
+</body>
+</html>
