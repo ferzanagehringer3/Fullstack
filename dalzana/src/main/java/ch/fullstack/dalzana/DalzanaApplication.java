@@ -16,49 +16,85 @@ import ch.fullstack.dalzana.repo.SkillRepository;
 @SpringBootApplication
 public class DalzanaApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(DalzanaApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(DalzanaApplication.class, args);
+    }
 
+    @Bean
+    CommandLineRunner seedData(
+            SkillRepository skillRepo,
+            AppUserRepository userRepo,
+            RequestRepository requestRepo
+    ) {
+        return args -> {
 
-	@Bean
-CommandLineRunner seedData(SkillRepository skillRepo,
-                           AppUserRepository userRepo,
-                           RequestRepository requestRepo) {
-    return args -> {
-        Skill java = skillRepo.save(new Skill("Java"));
-        Skill spring = skillRepo.save(new Skill("Spring"));
-        Skill sql = skillRepo.save(new Skill("SQL"));
-        Skill ui = skillRepo.save(new Skill("UI"));
+            // 👉 Seed nur einmal ausführen
+            if (requestRepo.count() > 0) {
+                System.out.println("ℹ️ Seed übersprungen – Daten existieren bereits.");
+                return;
+            }
 
-        var manager = new AppUser("Manager Mia", "manager@dalzana.ch", role.MANAGER);
-        manager.addSkill(java); manager.addSkill(spring);
+            // ---- Skills (idempotent) ----
+            Skill java = getOrCreateSkill(skillRepo, "Java");
+            Skill spring = getOrCreateSkill(skillRepo, "Spring");
+            Skill sql = getOrCreateSkill(skillRepo, "SQL");
+            Skill ui = getOrCreateSkill(skillRepo, "UI");
 
-        var u1 = new AppUser("Ali", "ali@dalzana.ch", role.USER);
-        u1.addSkill(java); u1.addSkill(sql);
+            // ---- Users ----
+            AppUser manager = new AppUser(
+                    "Manager Mia",
+                    "manager@dalzana.ch",
+                    role.MANAGER
+            );
+            manager.addSkill(java);
+            manager.addSkill(spring);
 
-        var u2 = new AppUser("Sara", "sara@dalzana.ch", role.USER);
-        u2.addSkill(ui);
+            AppUser u1 = new AppUser(
+                    "Ali",
+                    "ali@dalzana.ch",
+                    role.USER
+            );
+            u1.addSkill(java);
+            u1.addSkill(sql);
 
-        userRepo.save(manager);
-        userRepo.save(u1);
-        userRepo.save(u2);
+            AppUser u2 = new AppUser(
+                    "Sara",
+                    "sara@dalzana.ch",
+                    role.USER
+            );
+            u2.addSkill(ui);
 
-        Request r1 = new Request("Website Bugfix", "Login Button funktioniert nicht");
-        r1.addRequiredSkill(ui);
+            userRepo.save(manager);
+            userRepo.save(u1);
+            userRepo.save(u2);
 
-        Request r2 = new Request("API bauen", "REST API für Requests");
-        r2.addRequiredSkill(java);
-        r2.addRequiredSkill(spring);
-        r2.addRequiredSkill(sql);
+            // ---- Requests ----
+            Request r1 = new Request(
+                    "Website Bugfix",
+                    "Login Button funktioniert nicht"
+            );
+            r1.addRequiredSkill(ui);
 
-        requestRepo.save(r1);
-        requestRepo.save(r2);
+            Request r2 = new Request(
+                    "API bauen",
+                    "REST API für Requests"
+            );
+            r2.addRequiredSkill(java);
+            r2.addRequiredSkill(spring);
+            r2.addRequiredSkill(sql);
 
-        System.out.println("✅ Seed fertig. Users=" + userRepo.count()
-                + " Skills=" + skillRepo.count()
-                + " Requests=" + requestRepo.count());
-    };
-}
+            requestRepo.save(r1);
+            requestRepo.save(r2);
 
+            System.out.println("✅ Seed fertig. Users=" + userRepo.count()
+                    + " Skills=" + skillRepo.count()
+                    + " Requests=" + requestRepo.count());
+        };
+    }
+
+    // ---- Helper: verhindert Duplicate-Fehler ----
+    private Skill getOrCreateSkill(SkillRepository repo, String name) {
+        return repo.findByName(name)
+                .orElseGet(() -> repo.save(new Skill(name)));
+    }
 }
