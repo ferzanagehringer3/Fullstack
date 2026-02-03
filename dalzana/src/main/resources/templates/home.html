@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Chat Mockup</title>
+  <title>DalZana Connect</title>
   <style>
     body { margin: 0; font-family: Arial, sans-serif; }
     .app { height: 100vh; display: flex; }
@@ -36,7 +36,7 @@
     <div class="main">
       <div class="header">
         <h2 id="teamTitle">Team A</h2>
-        <button id="filesBtn">Files</button>
+        <a href="/files" style="text-decoration: none;"><button id="filesBtn">Files</button></a>
       </div>
 
       <div class="chat" id="chatBox">
@@ -51,15 +51,7 @@
     </div>
   </div>
 
-  <!-- Simple "Files" mockup -->
-  <dialog id="filesDialog">
-    <div style="padding:12px;">
-      <h3>Files</h3>
-      <input type="file" multiple />
-      <p style="margin-top:10px;">(File list would appear here)</p>
-      <button id="closeFiles">Close</button>
-    </div>
-  </dialog>
+
 
   <script>
     // Switch team title
@@ -97,10 +89,7 @@
       input.value = "";
     });
 
-    // Files dialog
-    const filesDialog = document.getElementById("filesDialog");
-    document.getElementById("filesBtn").addEventListener("click", () => filesDialog.showModal());
-    document.getElementById("closeFiles").addEventListener("click", () => filesDialog.close());
+    // Files dialog removed - button links to /files page
   </script>
 </body>
 </html>
