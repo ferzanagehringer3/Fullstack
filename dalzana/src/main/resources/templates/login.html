@@ -4,17 +4,70 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login Page</title>
+  <title>Login / Registrierung</title>
 
   <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css" />
   <link rel="stylesheet" th:href="@{/css/login.css}" href="/css/login.css" />
+
+  <style>
+    /* kleines Toggle-UI (kannst du spaeter in login.css verschieben) */
+    .auth-switch {
+      display: flex;
+      gap: 10px;
+      margin: 14px 0 18px;
+    }
+
+    .auth-switch button {
+      flex: 1;
+      padding: 10px;
+      cursor: pointer;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      background: #fff;
+      color: #333;
+    }
+
+    .auth-switch button.active {
+      font-weight: 600;
+      border-color: #333;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
 </head>
 
 <body class="login-page">
   <div class="login-container">
     <h1 class="page-title">DalZana Connect</h1>
 
-    <form id="registerForm">
+    <!-- Toggle -->
+    <div class="auth-switch">
+      <button type="button" id="btnShowLogin" class="active">Login</button>
+      <button type="button" id="btnShowRegister">Registrieren</button>
+    </div>
+
+    <!-- ===================== LOGIN (Email + Passwort) ===================== -->
+    <form id="loginForm" th:action="@{/login}" action="/login" method="post">
+      <div class="form-group">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" name="email" placeholder="Enter your email" required />
+      </div>
+
+      <div class="form-group">
+        <label for="loginPassword">Passwort</label>
+        <input type="password" id="loginPassword" name="password" placeholder="Enter your password" required />
+      </div>
+
+      <!-- Fehler vom Backend (Flash Attribute loginError) -->
+      <p th:if="${loginError}" th:text="${loginError}" style="margin-top:12px; color:#b00020;"></p>
+
+      <button type="submit">Einloggen</button>
+    </form>
+
+    <!-- ===================== REGISTER ===================== -->
+    <form id="registerForm" class="hidden">
       <div class="form-group">
         <label for="name">Name und Nachname</label>
         <input type="text" id="name" name="name" placeholder="Enter your name and surname" required />
@@ -26,7 +79,7 @@
       </div>
 
       <div class="form-group">
-        <label for="password">Password</label>
+        <label for="password">Passwort</label>
         <input type="password" id="password" name="password" placeholder="Enter your password" required />
       </div>
 
@@ -44,17 +97,40 @@
         </select>
       </div>
 
-      <p id="formError" style="display:none; margin-top:12px;"></p>
-      <button id="submitBtn" type="submit">Submit</button>
+      <p id="formError" style="display:none; margin-top:12px; color:#b00020;"></p>
+      <button id="submitBtn" type="submit">Registrieren</button>
     </form>
   </div>
+
   <script>
-    const form = document.getElementById("registerForm");
+    // ---------- Toggle ----------
+    const btnShowLogin = document.getElementById("btnShowLogin");
+    const btnShowRegister = document.getElementById("btnShowRegister");
+    const loginForm = document.getElementById("loginForm");
+    const registerForm = document.getElementById("registerForm");
+
+    function showLogin() {
+      btnShowLogin.classList.add("active");
+      btnShowRegister.classList.remove("active");
+      loginForm.classList.remove("hidden");
+      registerForm.classList.add("hidden");
+    }
+
+    function showRegister() {
+      btnShowRegister.classList.add("active");
+      btnShowLogin.classList.remove("active");
+      registerForm.classList.remove("hidden");
+      loginForm.classList.add("hidden");
+    }
+
+    btnShowLogin.addEventListener("click", showLogin);
+    btnShowRegister.addEventListener("click", showRegister);
+
+    // ---------- Skills rendern ----------
     const errorEl = document.getElementById("formError");
     const submitBtn = document.getElementById("submitBtn");
     const skillsContainer = document.getElementById("skillsContainer");
 
-    // ✅ Skills automatisch rendern (Value muss Enum-Name sein!)
     const SKILLS = [
       ["JAVA", "Java"],
       ["PYTHON", "Python"],
@@ -88,18 +164,19 @@
     ];
 
     skillsContainer.innerHTML = SKILLS.map(([value, label]) => `
-    <label style="display:inline-flex; gap:8px; align-items:center; margin-right:14px; margin-bottom:8px;">
-      <input type="checkbox" name="skills" value="${value}">
-      ${label}
-    </label>
-  `).join("");
+      <label style="display:inline-flex; gap:8px; align-items:center; margin-right:14px; margin-bottom:8px;">
+        <input type="checkbox" name="skills" value="${value}">
+        ${label}
+      </label>
+    `).join("");
 
     function showError(msg) {
       errorEl.style.display = "block";
       errorEl.textContent = msg;
     }
 
-    form.addEventListener("submit", async (e) => {
+    // ---------- Registrierung ----------
+    registerForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       errorEl.style.display = "none";
       submitBtn.disabled = true;
@@ -110,13 +187,11 @@
       const role = document.getElementById("role").value;
 
       const skills = Array.from(document.querySelectorAll("input[name='skills']:checked"))
-        .map(el => el.value); // ["JAVA","SQL",...]
+        .map(el => el.value);
 
-      // ✅ payload war vorher nicht definiert
       const payload = { name, email, password, role, skills };
 
       try {
-        // ✅ richtiger Endpoint
         const res = await fetch("/api/users", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -125,11 +200,19 @@
 
         if (!res.ok) {
           const text = await res.text();
+
+          // Optional: nicer messages
+          if (res.status === 409) throw new Error("Diese Email ist bereits registriert.");
           throw new Error(text || `HTTP ${res.status}`);
         }
 
         await res.json();
-        window.location.href = "/home";
+
+        // ✅ Nach Registrierung NICHT direkt /home (weil du dann nicht eingeloggt bist)
+        // -> Wechsel zum Login Tab und Email vorausfuellen
+        showLogin();
+        document.getElementById("loginEmail").value = email;
+        document.getElementById("loginPassword").value = "";
       } catch (err) {
         showError("Konnte User nicht erstellen: " + err.message);
       } finally {
