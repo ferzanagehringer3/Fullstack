@@ -6,13 +6,19 @@ import ch.fullstack.dalzana.model.AppUser;
 import ch.fullstack.dalzana.model.Skill;
 import ch.fullstack.dalzana.model.role;
 import ch.fullstack.dalzana.repo.AppUserRepository;
+import ch.fullstack.dalzana.repo.MessageRepository;
+import ch.fullstack.dalzana.model.Message;
+import ch.fullstack.dalzana.model.Team;
+import ch.fullstack.dalzana.repo.TeamRepository;
 
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.Base64;
@@ -24,11 +30,15 @@ public class HelloController {
 
     private final TeamService teamService;
     private final AppUserRepository userRepository;
+    private final MessageRepository messageRepository;
+    private final TeamRepository teamRepository;
     private final Argon2PasswordEncoder encoder;
 
-    public HelloController(TeamService teamService, AppUserRepository userRepository) {
+    public HelloController(TeamService teamService, AppUserRepository userRepository, MessageRepository messageRepository, TeamRepository teamRepository) {
         this.teamService = teamService;
         this.userRepository = userRepository;
+        this.messageRepository = messageRepository;
+        this.teamRepository = teamRepository;
         this.encoder = Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
     }
 
@@ -208,6 +218,105 @@ public class HelloController {
         model.addAttribute("teams", teamService.findAll());
         model.addAttribute("users", userRepository.findAll());
         return "home";
+    }
+
+    @PostMapping("/home/messages/send")
+    @ResponseBody
+    public String sendMessage(@RequestParam Long teamId, 
+                             @RequestParam String content,
+                             HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return "{\"error\": \"Not logged in\"}";
+        }
+
+        try {
+            Team team = teamRepository.findById(teamId).orElseThrow();
+            AppUser user = userRepository.findById(userId).orElseThrow();
+            
+            Message message = new Message(team, user, content);
+            messageRepository.save(message);
+            
+            return "{\"success\": true}";
+        } catch (Exception e) {
+            return "{\"error\": \"" + e.getMessage() + "\"}";
+        }
+    }
+
+    @GetMapping("/home/messages/{teamId}")
+    @ResponseBody
+    public java.util.List<MessageDto> getMessages(@PathVariable Long teamId, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return java.util.Collections.emptyList();
+        }
+
+        return messageRepository.findByTeamIdOrderByCreatedAtAsc(teamId).stream()
+            .map(m -> new MessageDto(
+                m.getId(),
+                m.getSender().getName(),
+                m.getContent(),
+                m.getCreatedAt().toString()
+            ))
+            .toList();
+    }
+
+    public record MessageDto(Long id, String senderName, String content, String createdAt) {}
+
+    @PostMapping("/home/teams/{teamId}/mark-as-read")
+    @ResponseBody
+    public String markTeamAsRead(@PathVariable Long teamId, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return "{\"error\": \"Not logged in\"}";
+        }
+
+        // Store the current message count for this team in session
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Integer> teamMessageCounts = (java.util.Map<String, Integer>) session.getAttribute("teamMessageCounts");
+        if (teamMessageCounts == null) {
+            teamMessageCounts = new java.util.HashMap<>();
+            session.setAttribute("teamMessageCounts", teamMessageCounts);
+        }
+
+        // Get total message count for this team
+        java.util.List<Message> allMessages = messageRepository.findByTeamIdOrderByCreatedAtAsc(teamId);
+        teamMessageCounts.put(teamId.toString(), allMessages.size());
+        
+        return "{\"success\": true}";
+    }
+
+    @GetMapping("/home/teams/{teamId}/unread-count")
+    @ResponseBody
+    public java.util.Map<String, Integer> getUnreadCount(@PathVariable Long teamId, HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return java.util.Map.of("count", 0);
+        }
+
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Integer> teamMessageCounts = (java.util.Map<String, Integer>) session.getAttribute("teamMessageCounts");
+        
+        int lastSeenCount = 0;
+        if (teamMessageCounts != null && teamMessageCounts.containsKey(teamId.toString())) {
+            lastSeenCount = teamMessageCounts.get(teamId.toString());
+        }
+
+        // Get all messages for this team
+        java.util.List<Message> allMessages = messageRepository.findByTeamIdOrderByCreatedAtAsc(teamId);
+        
+        // Count NEW messages from other users (messages after the last seen count)
+        int unreadCount = 0;
+        String currentUserName = (String) session.getAttribute("userName");
+        
+        for (int i = lastSeenCount; i < allMessages.size(); i++) {
+            Message msg = allMessages.get(i);
+            if (!msg.getSender().getName().equals(currentUserName)) {
+                unreadCount++;
+            }
+        }
+
+        return java.util.Map.of("count", unreadCount);
     }
 
     @GetMapping("/logout")
