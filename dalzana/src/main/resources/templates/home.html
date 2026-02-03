@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -23,20 +23,31 @@
     <!-- LEFT: Teams -->
     <div class="left">
       <h3>Teams</h3>
-      <button id="newTeamBtn">+ Create Team</button>
-
       <div class="teams" id="teamList">
-        <button class="team" data-team="Team A">Team A</button>
-        <button class="team" data-team="Team B">Team B</button>
-        <button class="team" data-team="Team C">Team C</button>
+        <div th:if="${#lists.isEmpty(teams)}">Keine Teams vorhanden</div>
+        <button th:each="t : ${teams}"
+                class="team"
+                th:data-team-id="${t.id}"
+                th:data-team-name="${t.name}"
+                th:text="${t.name}">
+          Team
+        </button>
       </div>
     </div>
 
     <!-- CENTER: Chat -->
     <div class="main">
       <div class="header">
-        <h2 id="teamTitle">Team A</h2>
-        <a href="/files" style="text-decoration: none;"><button id="filesBtn">Files</button></a>
+        <h2 id="teamTitle" th:if="${!#lists.isEmpty(teams)}" th:text="${teams[0].name}">Team</h2>
+        <h2 id="teamTitle" th:if="${#lists.isEmpty(teams)}">Kein Team</h2>
+
+        <a id="filesLink"
+           th:if="${!#lists.isEmpty(teams)}"
+           th:href="@{/teams/{teamId}/files(teamId=${teams[0].id})}"
+           style="text-decoration: none;">
+          <button id="filesBtn">Files</button>
+        </a>
+        <button id="filesBtn" th:if="${#lists.isEmpty(teams)}" disabled>Files</button>
       </div>
 
       <div class="chat" id="chatBox">
@@ -54,22 +65,22 @@
 
 
   <script>
-    // Switch team title
+    // Switch team title + files link
     document.getElementById("teamList").addEventListener("click", (e) => {
       const btn = e.target.closest(".team");
       if (!btn) return;
-      document.getElementById("teamTitle").textContent = btn.dataset.team;
-    });
 
-    // Create team (mock)
-    document.getElementById("newTeamBtn").addEventListener("click", () => {
-      const name = prompt("Team name?");
-      if (!name) return;
-      const btn = document.createElement("button");
-      btn.className = "team";
-      btn.dataset.team = name;
-      btn.textContent = name;
-      document.getElementById("teamList").appendChild(btn);
+      const teamName = btn.dataset.teamName;
+      const teamId = btn.dataset.teamId;
+
+      if (teamName) {
+        document.getElementById("teamTitle").textContent = teamName;
+      }
+
+      const filesLink = document.getElementById("filesLink");
+      if (filesLink && teamId) {
+        filesLink.setAttribute("href", `/teams/${teamId}/files`);
+      }
     });
 
     // Send message (mock)
@@ -89,7 +100,7 @@
       input.value = "";
     });
 
-    // Files dialog removed - button links to /files page
+    // Files button links to selected team
   </script>
 </body>
 </html>

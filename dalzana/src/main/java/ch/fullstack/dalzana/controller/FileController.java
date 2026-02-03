@@ -34,7 +34,7 @@ public class FileController {
 
     @GetMapping
     public String showUploadPage() {
-        return "files";
+        return "redirect:/home";
     }
 
     @PostMapping("/upload")

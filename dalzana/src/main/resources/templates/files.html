@@ -174,7 +174,7 @@
 <body>
     <div class="upload-container">
         <div style="margin-bottom: 20px;">
-            <a href="/" style="text-decoration: none;">
+            <a href="/home" th:href="@{/home}" style="text-decoration: none;">
                 <button style="padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
                     ← Zurück
                 </button>
@@ -185,7 +185,7 @@
         <div th:if="${successMessage}" class="message success" th:text="${successMessage}"></div>
         <div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
 
-        <form method="POST" th:action="@{/files/upload}" enctype="multipart/form-data" class="upload-form" id="uploadForm">
+        <form method="POST" th:action="@{/teams/{teamId}/files/upload(teamId=${teamId})}" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="files">Dateien auswählen:</label>
                 <div class="file-input-wrapper">
@@ -209,7 +209,34 @@
             <button type="submit" class="submit-btn" id="submitBtn" disabled>
                 ✓ Hochladen
             </button>
-        </form>
+                </form>
+
+                <hr style="margin: 25px 0;">
+
+                <h2 style="font-size: 18px; margin-bottom: 10px;">Vorhandene Dateien</h2>
+
+                <div th:if="${#lists.isEmpty(files)}" class="no-files">
+                    Noch keine Dateien hochgeladen
+                </div>
+
+                <div th:each="f : ${files}" class="file-item">
+                    <div class="file-info">
+                        <div class="file-name" th:text="${f.originalName}">file.pdf</div>
+                        <div class="file-size" th:text="${f.sizeBytes + ' B'}">123 B</div>
+                    </div>
+
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <a class="delete-btn"
+                             style="background:#007bff;text-decoration:none;display:inline-block;"
+                             th:href="@{/teams/{teamId}/files/{fileId}/download(teamId=${teamId},fileId=${f.id})}">
+                            Download
+                        </a>
+                        <form method="POST"
+                                    th:action="@{/teams/{teamId}/files/{fileId}/delete(teamId=${teamId},fileId=${f.id})}">
+                            <button type="submit" class="delete-btn">Löschen</button>
+                        </form>
+                    </div>
+                </div>
     </div>
 
     <script>
