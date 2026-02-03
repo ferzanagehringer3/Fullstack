@@ -1,6 +1,7 @@
 package ch.fullstack.dalzana.controller;
 
 import ch.fullstack.dalzana.service.TeamService;
+import ch.fullstack.dalzana.service.EmailService;
 import jakarta.servlet.http.HttpSession;
 import ch.fullstack.dalzana.model.AppUser;
 import ch.fullstack.dalzana.model.Skill;
@@ -32,13 +33,17 @@ public class HelloController {
     private final AppUserRepository userRepository;
     private final MessageRepository messageRepository;
     private final TeamRepository teamRepository;
+    private final EmailService emailService;
     private final Argon2PasswordEncoder encoder;
 
-    public HelloController(TeamService teamService, AppUserRepository userRepository, MessageRepository messageRepository, TeamRepository teamRepository) {
+    public HelloController(TeamService teamService, AppUserRepository userRepository, 
+                          MessageRepository messageRepository, TeamRepository teamRepository,
+                          EmailService emailService) {
         this.teamService = teamService;
         this.userRepository = userRepository;
         this.messageRepository = messageRepository;
         this.teamRepository = teamRepository;
+        this.emailService = emailService;
         this.encoder = Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
     }
 
@@ -232,10 +237,23 @@ public class HelloController {
 
         try {
             Team team = teamRepository.findById(teamId).orElseThrow();
-            AppUser user = userRepository.findById(userId).orElseThrow();
+            AppUser sender = userRepository.findById(userId).orElseThrow();
             
-            Message message = new Message(team, user, content);
+            Message message = new Message(team, sender, content);
             messageRepository.save(message);
+            
+            // Send email notifications to all team members except the sender
+            for (AppUser member : team.getMembers()) {
+                if (!member.getId().equals(userId)) {
+                    emailService.sendTeamMessageNotification(
+                        member.getEmail(),
+                        member.getName(),
+                        team.getName(),
+                        sender.getName(),
+                        content
+                    );
+                }
+            }
             
             return "{\"success\": true}";
         } catch (Exception e) {
