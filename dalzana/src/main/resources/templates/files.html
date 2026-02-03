@@ -3,45 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Datei-Upload</title>
+    <title>Team Dateien</title>
     <link rel="stylesheet" th:href="@{/css/layout.css}">
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <style>
-        .upload-container {
-            max-width: 600px;
-            margin: 40px auto;
-            padding: 20px;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f6f7fb;
+            padding-top: 0;
         }
 
-        h1 {
-            color: #333;
-            text-align: center;
-        }
-
-        .upload-form {
+        .file-manager {
             display: flex;
             flex-direction: column;
+            height: calc(100vh - 64px);
+            padding-top: 0;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .message {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .content-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 350px;
             gap: 20px;
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+        .files-section {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
         }
 
-        label {
-            font-weight: bold;
-            color: #333;
+        .upload-panel {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            height: fit-content;
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #111827;
+            margin: 0 0 16px 0;
         }
 
         .file-input-wrapper {
             position: relative;
             overflow: hidden;
-            display: inline-block;
+            display: block;
             width: 100%;
         }
 
@@ -54,206 +90,326 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 40px 20px;
-            border: 2px dashed #007bff;
-            border-radius: 4px;
-            background-color: #e7f3ff;
+            padding: 32px 16px;
+            border: 2px dashed #d1d5db;
+            border-radius: 6px;
+            background-color: #f9fafb;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.2s;
             font-weight: 500;
-            color: #007bff;
+            color: #6b7280;
+            text-align: center;
+            font-size: 13px;
         }
 
         .file-input-label:hover {
-            background-color: #cce5ff;
-            border-color: #0056b3;
-            color: #0056b3;
+            background-color: #f3f4f6;
+            border-color: #3b82f6;
+            color: #3b82f6;
         }
 
         .file-input-label.dragover {
-            background-color: #cce5ff;
-            border-color: #0056b3;
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+            color: #3b82f6;
         }
 
-        .file-list {
-            margin-top: 20px;
+        .selected-files {
+            margin-top: 16px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 8px;
+            display: none;
         }
 
-        .file-item {
+        .selected-files.has-files {
+            display: block;
+        }
+
+        .selected-file {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px;
-            background-color: white;
-            border: 1px solid #ddd;
+            padding: 8px;
+            background: #f9fafb;
             border-radius: 4px;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
+            font-size: 12px;
         }
 
-        .file-info {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
+        .selected-file-name {
             flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #374151;
         }
 
-        .file-name {
-            font-weight: bold;
-            color: #333;
-        }
-
-        .file-size {
-            font-size: 12px;
-            color: #666;
-        }
-
-        .delete-btn {
-            background-color: #dc3545;
-            color: white;
+        .remove-file-btn {
+            background: none;
             border: none;
-            padding: 6px 12px;
-            border-radius: 4px;
+            color: #dc3545;
             cursor: pointer;
-            font-size: 12px;
-            transition: background-color 0.3s ease;
-        }
-
-        .delete-btn:hover {
-            background-color: #c82333;
+            font-size: 14px;
+            padding: 0 4px;
         }
 
         .submit-btn {
-            padding: 12px 24px;
-            background-color: #28a745;
-            color: white;
+            width: 100%;
+            padding: 10px;
+            background: #10b981;
+            color: #fff;
             border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            font-weight: bold;
+            border-radius: 6px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s;
+            margin-top: 16px;
         }
 
         .submit-btn:hover:not(:disabled) {
-            background-color: #218838;
+            background: #059669;
         }
 
         .submit-btn:disabled {
-            background-color: #ccc;
+            background: #d1d5db;
             cursor: not-allowed;
         }
 
-        .message {
-            padding: 12px;
-            border-radius: 4px;
-            text-align: center;
-            margin-bottom: 20px;
+        .files-list {
+            padding: 0;
+            margin: 0;
+        }
+
+        .files-header {
+            display: grid;
+            grid-template-columns: 1fr 120px 100px;
+            gap: 12px;
+            padding: 12px 16px;
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .file-row {
+            display: grid;
+            grid-template-columns: 1fr 120px 100px;
+            gap: 12px;
+            padding: 14px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .file-row:hover {
+            background: #f9fafb;
+        }
+
+        .file-row:last-child {
+            border-bottom: none;
+        }
+
+        .file-name-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .file-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .file-name-text {
             font-weight: 500;
+            color: #111827;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 14px;
         }
 
-        .message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .file-size {
+            font-size: 13px;
+            color: #6b7280;
         }
 
-        .message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .file-actions {
+            display: flex;
+            gap: 6px;
         }
 
-        .no-files {
+        .file-btn {
+            padding: 6px 10px;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            background: #fff;
+            color: #374151;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-btn:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
+        .file-btn-danger {
+            color: #dc3545;
+        }
+
+        .file-btn-danger:hover {
+            background: #fee2e2;
+            border-color: #fecaca;
+        }
+
+        .empty-state {
+            padding: 48px 24px;
             text-align: center;
-            color: #999;
-            padding: 20px;
-            font-style: italic;
+            color: #6b7280;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .empty-state-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #111827;
+            margin: 0 0 6px 0;
+        }
+
+        .empty-state-text {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .content-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .files-header,
+            .file-row {
+                grid-template-columns: 1fr 80px;
+                gap: 8px;
+            }
+
+            .file-size {
+                display: none;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="upload-container">
-        <div style="margin-bottom: 20px;">
-            <a href="/home" th:href="@{/home}" style="text-decoration: none;">
-                <button style="padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
-                    ← Zurück
-                </button>
-            </a>
+    <div th:insert="~{fragments/header}"></div>
+    <div class="file-manager">
+        <!-- Main Content -->
+        <div class="main-content">
+            <div th:if="${successMessage}" class="message success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
+
+            <div class="content-wrapper">
+                <!-- Files List -->
+                <div class="files-section">
+                    <div class="files-list">
+                        <div class="files-header">
+                            <div>Dateiname</div>
+                            <div>Größe</div>
+                            <div>Aktionen</div>
+                        </div>
+
+                        <div th:if="${#lists.isEmpty(files)}" class="empty-state">
+                            <div class="empty-state-icon">📄</div>
+                            <h3 class="empty-state-title">Keine Dateien</h3>
+                            <p class="empty-state-text">Laden Sie Ihre erste Datei hoch, um zu beginnen</p>
+                        </div>
+
+                        <div th:each="f : ${files}" class="file-row">
+                            <div class="file-name-cell">
+                                <span class="file-icon">📄</span>
+                                <span class="file-name-text" th:text="${f.originalName}" title="${f.originalName}">file.pdf</span>
+                            </div>
+                            <div class="file-size" th:text="${#numbers.formatInteger(f.sizeBytes / 1024, 1)} + ' KB'">123 KB</div>
+                            <div class="file-actions">
+                                <a class="file-btn"
+                                   th:href="@{/teams/{teamId}/files/{fileId}/download(teamId=${teamId},fileId=${f.id})}"
+                                   style="text-decoration: none;">
+                                    ⬇️
+                                </a>
+                                <form method="POST"
+                                      th:action="@{/teams/{teamId}/files/{fileId}/delete(teamId=${teamId},fileId=${f.id})}"
+                                      style="margin: 0; display: inline;">
+                                    <button type="submit" class="file-btn file-btn-danger" onclick="return confirm('Datei wirklich löschen?');">
+                                        🗑️
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upload Panel -->
+                <div class="upload-panel">
+                    <h3 class="panel-title">Dateien hochladen</h3>
+
+                    <form method="POST" th:action="@{/teams/{teamId}/files/upload(teamId=${teamId})}" enctype="multipart/form-data" id="uploadForm">
+                        <div class="file-input-wrapper">
+                            <input 
+                                type="file" 
+                                id="files" 
+                                name="files" 
+                                multiple
+                                accept="*/*"
+                            >
+                            <label for="files" class="file-input-label" id="dropZone">
+                                <span id="dropText">📁 Dateien hier ablegen oder klicken</span>
+                            </label>
+                        </div>
+
+                        <div class="selected-files" id="selectedFiles"></div>
+
+                        <button type="submit" class="submit-btn" id="submitBtn" disabled>
+                            ✓ Hochladen
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
-        <h1>📁 Dateien hochladen</h1>
-
-        <div th:if="${successMessage}" class="message success" th:text="${successMessage}"></div>
-        <div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
-
-        <form method="POST" th:action="@{/teams/{teamId}/files/upload(teamId=${teamId})}" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="files">Dateien auswählen:</label>
-                <div class="file-input-wrapper">
-                    <input 
-                        type="file" 
-                        id="files" 
-                        name="files" 
-                        multiple
-                        accept="*/*"
-                    >
-                    <label for="files" class="file-input-label" id="dropZone">
-                        <span id="dropText">Dateien hier ablegen oder klicken zum Auswählen</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="file-list" id="fileList">
-                <div class="no-files">Keine Dateien ausgewählt</div>
-            </div>
-
-            <button type="submit" class="submit-btn" id="submitBtn" disabled>
-                ✓ Hochladen
-            </button>
-                </form>
-
-                <hr style="margin: 25px 0;">
-
-                <h2 style="font-size: 18px; margin-bottom: 10px;">Vorhandene Dateien</h2>
-
-                <div th:if="${#lists.isEmpty(files)}" class="no-files">
-                    Noch keine Dateien hochgeladen
-                </div>
-
-                <div th:each="f : ${files}" class="file-item">
-                    <div class="file-info">
-                        <div class="file-name" th:text="${f.originalName}">file.pdf</div>
-                        <div class="file-size" th:text="${f.sizeBytes + ' B'}">123 B</div>
-                    </div>
-
-                    <div style="display:flex; gap:8px; align-items:center;">
-                        <a class="delete-btn"
-                             style="background:#007bff;text-decoration:none;display:inline-block;"
-                             th:href="@{/teams/{teamId}/files/{fileId}/download(teamId=${teamId},fileId=${f.id})}">
-                            Download
-                        </a>
-                        <form method="POST"
-                                    th:action="@{/teams/{teamId}/files/{fileId}/delete(teamId=${teamId},fileId=${f.id})}">
-                            <button type="submit" class="delete-btn">Löschen</button>
-                        </form>
-                    </div>
-                </div>
     </div>
 
     <script>
         const fileInput = document.getElementById('files');
         const dropZone = document.getElementById('dropZone');
-        const fileList = document.getElementById('fileList');
+        const selectedFilesDiv = document.getElementById('selectedFiles');
         const submitBtn = document.getElementById('submitBtn');
         const dropText = document.getElementById('dropText');
         let selectedFiles = [];
 
-        // Datei-Auswahl-Event
+        // File selection event
         fileInput.addEventListener('change', (e) => {
             selectedFiles = Array.from(e.target.files);
             updateFileList();
         });
 
-        // Drag-and-Drop Events
+        // Drag-and-drop events
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.classList.add('dragover');
@@ -271,22 +427,21 @@
             updateFileList();
         });
 
-        // Datei-Liste aktualisieren
+        // Update file list
         function updateFileList() {
             if (selectedFiles.length === 0) {
-                fileList.innerHTML = '<div class="no-files">Keine Dateien ausgewählt</div>';
+                selectedFilesDiv.classList.remove('has-files');
+                selectedFilesDiv.innerHTML = '';
                 submitBtn.disabled = true;
                 return;
             }
 
-            fileList.innerHTML = selectedFiles.map((file, index) => `
-                <div class="file-item">
-                    <div class="file-info">
-                        <div class="file-name">${escapeHtml(file.name)}</div>
-                        <div class="file-size">${formatFileSize(file.size)}</div>
-                    </div>
-                    <button type="button" class="delete-btn" onclick="removeFile(${index})">
-                        Entfernen
+            selectedFilesDiv.classList.add('has-files');
+            selectedFilesDiv.innerHTML = selectedFiles.map((file, index) => `
+                <div class="selected-file">
+                    <span class="selected-file-name" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</span>
+                    <button type="button" class="remove-file-btn" onclick="removeFile(${index})" title="Entfernen">
+                        ✕
                     </button>
                 </div>
             `).join('');
@@ -294,7 +449,7 @@
             submitBtn.disabled = false;
         }
 
-        // Datei entfernen
+        // Remove file
         function removeFile(index) {
             selectedFiles.splice(index, 1);
             const dataTransfer = new DataTransfer();
@@ -303,7 +458,7 @@
             updateFileList();
         }
 
-        // Dateigrößen formatieren
+        // Format file size
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 Bytes';
             const k = 1024;
@@ -312,7 +467,7 @@
             return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
         }
 
-        // HTML escapen
+        // Escape HTML
         function escapeHtml(text) {
             const map = {
                 '&': '&amp;',

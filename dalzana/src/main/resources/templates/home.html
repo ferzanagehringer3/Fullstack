@@ -4,13 +4,17 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>DalZana Connect</title>
+  <link rel="stylesheet" th:href="@{/css/layout.css}">
+  <link rel="stylesheet" th:href="@{/css/main.css}">
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; }
+    body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #f6f7fb; padding-top: 64px; }
     .app { height: 100vh; display: flex; }
-    .left { width: 240px; border-right: 1px solid #ddd; padding: 12px; overflow-y: auto; }
-    .main { flex: 1; padding: 12px; display: flex; flex-direction: column; }
-    .teams .team-row { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
-    .teams button.team { flex: 1; padding: 8px; text-align: left; position: relative; }
+    .left { width: 260px; border-right: 1px solid #e5e7eb; padding: 20px; overflow-y: auto; background: #fff; }
+    .left h3 { margin: 0 0 16px 0; font-size: 18px; color: #111827; }
+    .main { flex: 1; padding: 24px; display: flex; flex-direction: column; background: #f6f7fb; }
+    .teams .team-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+    .teams button.team { flex: 1; padding: 10px 12px; text-align: left; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-size: 14px; color: #374151; position: relative; }
+    .teams button.team:hover { background: #f3f4f6; border-color: #d1d5db; }
     .teams .team-badge {
       position: absolute;
       top: 6px;
@@ -22,43 +26,56 @@
       display: none;
       animation: pulse 1s infinite;
     }
-    .teams .team-actions { display: flex; gap: 4px; }
-    .teams .team-actions a, .teams .team-actions button { padding: 6px 8px; font-size: 12px; }
-    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; gap: 12px; }
-    .team-title { display: flex; flex-direction: column; gap: 4px; }
-    .team-members { font-size: 12px; color: #888; }
-    .team-members a { color: #888; text-decoration: none; }
+    .teams .team-actions { display: flex; gap: 6px; }
+    .teams .team-actions button { padding: 6px 10px; font-size: 12px; background: #fff; border: 1px solid #e5e7eb; border-radius: 4px; cursor: pointer; transition: all 0.2s; color: #374151; }
+    .teams .team-actions button:hover { background: #f9fafb; border-color: #d1d5db; }
+    .teams .team-actions button[type="submit"] { background: #dc3545; color: #fff; border-color: #dc3545; }
+    .teams .team-actions button[type="submit"]:hover { background: #c82333; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 16px; gap: 16px; background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 16px; }
+    .team-title { display: flex; flex-direction: column; gap: 6px; }
+    .team-title h2 { margin: 0; font-size: 20px; color: #111827; }
+    .team-members { font-size: 13px; color: #6b7280; }
+    .team-members a { color: #3b82f6; text-decoration: none; }
     .team-members a:hover { text-decoration: underline; }
-    .header-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
-    .chat { flex: 1; padding: 12px 0; overflow: auto; }
-    .msg { margin: 6px 0; }
-    .msg.new-message { background: #fff3cd; padding: 4px; border-radius: 4px; animation: highlight 2s ease-out; }
-    @keyframes highlight { from { background: #fff3cd; } to { background: transparent; } }
-    .composer { display: flex; gap: 8px; border-top: 1px solid #ddd; padding-top: 10px; }
-    input[type="text"] { flex: 1; padding: 8px; }
+    .header-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+    .header-actions button, .header-actions a button { padding: 8px 16px; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer; background: #fff; color: #374151; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+    .header-actions button:hover, .header-actions a button:hover { background: #f9fafb; border-color: #d1d5db; }
+    .chat { flex: 1; padding: 20px; overflow-y: auto; background: #fff; border-radius: 8px; display: flex; flex-direction: column; gap: 12px; }
+    .msg { padding: 12px 16px; border-radius: 8px; max-width: 50%; word-wrap: break-word; }
+    .msg.sent { align-self: flex-end; background: #3b82f6; color: #fff; border-radius: 8px 0 8px 8px; }
+    .msg.received { align-self: flex-start; background: #e5e7eb; color: #111827; border-radius: 0 8px 8px 8px; }
+    .msg-sender { font-size: 12px; font-weight: 600; opacity: 0.8; margin-bottom: 4px; }
+    .msg.new-message { animation: highlight 2s ease-out; }
+    @keyframes highlight { from { background: #fef3c7; } to { background: transparent; } }
+    .composer { display: flex; gap: 10px; border-top: 1px solid #e5e7eb; padding-top: 16px; }
+    input[type="text"] { flex: 1; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px; }
+    input[type="text"]:focus { outline: none; border-color: #3b82f6; }
+    .composer button { padding: 10px 20px; background: #3b82f6; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+    .composer button:hover { background: #2563eb; }
     .form-group { margin: 12px 0; }
     .form-group label { display: block; font-weight: bold; margin-bottom: 4px; }
     .form-group input, .form-group select { width: 100%; padding: 6px; box-sizing: border-box; }
-    .form-group button { background: #28a745; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-top: 8px; }
-    .form-group button:hover { background: #218838; }
-    .message { padding: 10px; border-radius: 4px; margin-bottom: 10px; }
-    .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-    .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-    .create-team { background: #f5f5f5; padding: 12px; border-radius: 4px; margin-bottom: 12px; }
-    .add-member { background: #f5f5f5; padding: 12px; border-radius: 4px; margin-bottom: 12px; }
+    .form-group button { background: #10b981; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; margin-top: 8px; transition: all 0.2s; }
+    .form-group button:hover { background: #059669; }
+    .message { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; }
+    .message.success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+    .message.error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .create-btn { width: 100%; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; }
+    .create-btn:hover { background: #2563eb; }
   </style>
 </head>
 
 <body>
+  <div th:insert="~{fragments/header}"></div>
   <div class="app">
     <!-- LEFT: Teams -->
     <div class="left">
       <h3>Teams</h3>
 
       <!-- Create Team Button -->
-      <div th:if="${currentUserRole == 'MANAGER'}" style="margin-bottom: 12px;">
+      <div th:if="${currentUserRole == 'MANAGER'}" style="margin-bottom: 16px;">
         <a href="/teams/create" style="text-decoration: none;">
-          <button style="width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+          <button class="create-btn">
             + Neues Team erstellen
           </button>
         </a>
@@ -146,7 +163,7 @@
     let currentTeamId = null;
     let messageInterval = null;
     let teamLastMessageCount = {}; // Track message count per team
-    const currentUserName = /*[[${currentUserName}]]*/ 'Unknown';
+    const currentUserName = /*[[${userName}]]*/ 'Unknown';
 
     // Initialize with first team if available
     const teams = document.querySelectorAll('.team');
@@ -237,8 +254,16 @@
 
         messages.forEach(msg => {
           const msgDiv = document.createElement("div");
-          msgDiv.className = "msg";
-          msgDiv.innerHTML = `<b>${msg.senderName}:</b> ${msg.content}`;
+          const isSent = msg.senderName === currentUserName;
+          msgDiv.className = `msg ${isSent ? 'received' : 'sent'}`;
+          
+          let html = '';
+          if (!isSent) {
+            html += `<div class="msg-sender">${msg.senderName}</div>`;
+          }
+          html += msg.content;
+          msgDiv.innerHTML = html;
+          
           chatBox.appendChild(msgDiv);
         });
 

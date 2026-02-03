@@ -23,16 +23,21 @@ public class TeamFile {
     @Column(nullable=false)
     private long sizeBytes;
 
+    @Lob
+    @Column(nullable=false, columnDefinition = "LONGBLOB")
+    private byte[] fileData;
+
     @Column(nullable=false)
     private LocalDateTime uploadedAt = LocalDateTime.now();
 
     protected TeamFile() {}
 
-    public TeamFile(Team team, String originalName, String storedName, long sizeBytes) {
+    public TeamFile(Team team, String originalName, String storedName, long sizeBytes, byte[] fileData) {
         this.team = team;
         this.originalName = originalName;
         this.storedName = storedName;
         this.sizeBytes = sizeBytes;
+        this.fileData = fileData;
     }
 
     public Long getId() { return id; }
@@ -40,5 +45,6 @@ public class TeamFile {
     public String getOriginalName() { return originalName; }
     public String getStoredName() { return storedName; }
     public long getSizeBytes() { return sizeBytes; }
+    public byte[] getFileData() { return fileData; }
     public LocalDateTime getUploadedAt() { return uploadedAt; }
 }
