@@ -84,6 +84,15 @@ public class HelloController {
         return "home";
     }
 
+    @PostMapping("/home/team/create")
+    public String createTeam(@RequestParam String teamName, @RequestParam(required = false) Long userId, @RequestParam(required = false) String description, Model model) {
+        try {
+            Long defaultUserId = userId != null ? userId : 1L;
+            if (!userRepository.existsById(defaultUserId)) {
+                model.addAttribute("errorMessage", "❌ Kein User gefunden. Bitte registrieren Sie sich zuerst.");
+            } else {
+                teamService.createTeam(teamName, defaultUserId, defaultUserId, description != null ? description : "");
+                model.addAttribute("successMessage", "✅ Team erstellt!");
     @GetMapping("/profile")
     public String profile(HttpSession session, Model model) {
         Long userId = (Long) session.getAttribute("userId");

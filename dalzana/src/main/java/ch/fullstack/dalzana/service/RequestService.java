@@ -26,4 +26,8 @@ public class RequestService {
     public Request save(Request request) {
         return repo.save(request);
     }
+
+    public void delete(Long id) {
+        repo.deleteById(id);
+    }
 }
