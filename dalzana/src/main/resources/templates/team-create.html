@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team erstellen</title>
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        .search-box {
+            position: relative;
+            margin-bottom: 10px;
+        }
+        .search-results {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+        .user-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .user-item:hover {
+            background: #f8f9fa;
+        }
+        .user-item.selected {
+            background: #e7f3ff;
+            border-left: 3px solid #007bff;
+        }
+        .user-info {
+            flex: 1;
+        }
+        .user-name {
+            font-weight: bold;
+            color: #333;
+        }
+        .user-email {
+            font-size: 12px;
+            color: #666;
+        }
+        .user-skills {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+        }
+        .skill-tag {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 4px;
+        }
+        .selected-count {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .checkbox-custom {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #545b62;
+        }
+        .message {
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .filter-info {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div th:if="${successMessage}" class="message success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
+
+        <h1>🚀 Neues Team erstellen</h1>
+
+        <form method="POST" th:action="@{/teams/create}" id="teamForm">
+            <div class="form-group">
+                <label for="teamName">Team Name *</label>
+                <input type="text" id="teamName" name="teamName" required placeholder="z.B. Marketing Team 2024">
+            </div>
+
+            <div class="form-group">
+                <label for="searchBox">Team Members suchen</label>
+                <div class="search-box">
+                    <input type="text" id="searchBox" placeholder="Suche nach Name, Email oder Skill...">
+                </div>
+                <div class="filter-info">
+                    <span id="resultCount">0</span> User gefunden • <span id="selectedCount">0</span> ausgewählt
+                </div>
+            </div>
+
+            <div class="search-results" id="userResults">
+                <div th:each="u : ${users}" 
+                     class="user-item" 
+                     th:data-user-id="${u.id}"
+                     th:data-user-name="${u.name}"
+                     th:data-user-email="${u.email}"
+                     th:data-user-skills="${u.skills}">
+                    <div class="user-info">
+                        <div class="user-name" th:text="${u.name}">User Name</div>
+                        <div class="user-email" th:text="${u.email}">user@email.com</div>
+                        <div class="user-skills" th:if="${!#sets.isEmpty(u.skills)}">
+                            <span th:each="skill : ${u.skills}" class="skill-tag" th:text="${skill}">Skill</span>
+                        </div>
+                    </div>
+                    <input type="checkbox" 
+                           th:name="userIds" 
+                           th:value="${u.id}" 
+                           class="checkbox-custom user-checkbox">
+                </div>
+            </div>
+
+            <div class="buttons">
+                <button type="submit" class="btn btn-primary">✓ Team erstellen</button>
+                <a href="/home" class="btn btn-secondary" style="text-decoration: none; display: inline-block; text-align: center;">Abbrechen</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const searchBox = document.getElementById('searchBox');
+        const userResults = document.getElementById('userResults');
+        const userItems = document.querySelectorAll('.user-item');
+        const resultCountEl = document.getElementById('resultCount');
+        const selectedCountEl = document.getElementById('selectedCount');
+        const checkboxes = document.querySelectorAll('.user-checkbox');
+
+        // Search functionality
+        searchBox.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            userItems.forEach(item => {
+                const name = item.dataset.userName.toLowerCase();
+                const email = item.dataset.userEmail.toLowerCase();
+                const skills = item.dataset.userSkills.toLowerCase();
+
+                const matches = name.includes(query) || 
+                               email.includes(query) || 
+                               skills.includes(query);
+
+                if (matches || query === '') {
+                    item.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            resultCountEl.textContent = visibleCount;
+        });
+
+        // Checkbox selection tracking
+        function updateSelectedCount() {
+            const selected = document.querySelectorAll('.user-checkbox:checked').length;
+            selectedCountEl.textContent = selected;
+        }
+
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', updateSelectedCount);
+        });
+
+        // Click on item to toggle checkbox
+        userItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (e.target.classList.contains('user-checkbox')) return;
+                const checkbox = item.querySelector('.user-checkbox');
+                checkbox.checked = !checkbox.checked;
+                item.classList.toggle('selected', checkbox.checked);
+                updateSelectedCount();
+            });
+        });
+
+        // Initialize count
+        resultCountEl.textContent = userItems.length;
+        updateSelectedCount();
+    </script>
+</body>
+</html>
