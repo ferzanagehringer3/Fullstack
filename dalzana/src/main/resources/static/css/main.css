@@ -1,65 +1,83 @@
-/* --- Reset / Base --- */
+/* ============================================
+   RESET & BASE STYLES
+   ============================================ */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #f6f7fb;
+  color: #111827;
 }
 
-/* --- Reusable UI --- */
-.page-title {
-  color: #333;
-  margin-bottom: 30px;
-  text-align: center;
-  font-size: 28px;
-}
-
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
 .form-group {
-  margin-bottom: 25px;
+  margin-bottom: 20px;
 }
 
 label {
   display: block;
-  margin-bottom: 8px;
-  color: #555;
   font-weight: 600;
+  margin-bottom: 6px;
+  color: #374151;
   font-size: 14px;
 }
 
 input[type="text"],
 input[type="email"],
 input[type="password"],
+textarea,
 select {
   width: 100%;
-  padding: 12px 15px;
-  border: 2px solid #e0e0e0;
-  border-radius: 5px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
   font-size: 14px;
-  transition: border-color 0.3s;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="password"]:focus,
+textarea:focus,
 select:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* ============================================
+   RADIO BUTTONS
+   ============================================ */
 .radio-group {
   margin-top: 10px;
 }
 
 .radio-option {
   margin-bottom: 10px;
+  display: flex;
+  align-items: center;
 }
 
 .radio-option input[type="radio"] {
   margin-right: 8px;
   cursor: pointer;
+  accent-color: #3b82f6;
 }
 
 .radio-option label {
@@ -69,31 +87,41 @@ select:focus {
   cursor: pointer;
 }
 
-button {
-  width: 100%;
-  padding: 14px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 16px;
-  font-weight: 600;
+/* ============================================
+   CHECKBOXES
+   ============================================ */
+input[type="checkbox"] {
   cursor: pointer;
-  transition: transform 0.2s;
+  accent-color: #3b82f6;
 }
 
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+.text-center {
+  text-align: center;
 }
 
-button:active {
-  transform: translateY(0);
+.text-muted {
+  color: #6b7280;
 }
 
-.form-section-title {
-  color: #667eea;
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 10px;
+.mt {
+  margin-top: 16px;
+}
+
+.mb {
+  margin-bottom: 16px;
+}
+
+.gap-small {
+  gap: 8px;
+}
+
+.gap-medium {
+  gap: 16px;
+}
+
+.gap-large {
+  gap: 24px;
 }

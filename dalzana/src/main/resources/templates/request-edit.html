@@ -7,21 +7,26 @@
     <link rel="stylesheet" th:href="@{/css/layout.css}">
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <style>
-        body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1 { margin-top: 0; color: #333; }
-        .form-group { margin-bottom: 16px; }
-        label { display: block; font-weight: bold; margin-bottom: 6px; color: #555; }
-        input[type="text"], textarea, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f6f7fb; margin: 0; padding: 20px; padding-top: 84px; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        h1 { margin-top: 16px; color: #111827; font-size: 24px; font-weight: 600; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; color: #374151; font-size: 14px; }
+        input[type="text"], textarea, select { width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 6px; box-sizing: border-box; font-size: 14px; font-family: 'Segoe UI', Arial, sans-serif; }
+        input[type="text"]:focus, textarea:focus, select:focus { outline: none; border-color: #3b82f6; }
         textarea { min-height: 100px; resize: vertical; }
         select { height: 150px; }
-        .btn { padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; }
-        .btn-primary { background: #007bff; color: #fff; }
-        .btn-secondary { background: #6c757d; color: #fff; margin-right: 8px; }
-        .buttons { margin-top: 20px; }
+        small { color: #6b7280; font-size: 13px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; text-decoration: none; display: inline-block; font-size: 14px; transition: all 0.2s; }
+        .btn-primary { background: #3b82f6; color: #fff; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-secondary { background: #6b7280; color: #fff; margin-left: 8px; }
+        .btn-secondary:hover { background: #4b5563; }
+        .buttons { margin-top: 24px; display: flex; gap: 12px; }
     </style>
 </head>
 <body>
+<div th:insert="~{fragments/header}"></div>
 <div class="container">
     <a class="btn btn-secondary" href="/requests">← Zurück</a>
 
@@ -48,7 +53,7 @@
         </div>
         <div class="buttons">
             <button class="btn btn-primary" type="submit">💾 Speichern</button>
-            <a class="btn btn-secondary" th:href="@{/requests}">Abbrechen</a>
+            <a class="btn btn-secondary" th:href="@{/requests}" style="text-decoration: none;">← Zurück</a>
         </div>
     </form>
 </div>

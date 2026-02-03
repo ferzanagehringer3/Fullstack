@@ -7,29 +7,34 @@
     <link rel="stylesheet" th:href="@{/css/layout.css}">
     <link rel="stylesheet" th:href="@{/css/main.css}">
     <style>
-        body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1 { margin-top: 0; color: #333; }
-        .note { font-size: 13px; color: #666; margin-bottom: 12px; }
-        .form-group { margin-bottom: 16px; }
-        label { display: block; font-weight: bold; margin-bottom: 6px; color: #555; }
-        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f6f7fb; margin: 0; padding: 20px; padding-top: 84px; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        h1 { margin-top: 16px; color: #111827; font-size: 24px; font-weight: 600; }
+        .note { font-size: 13px; color: #6b7280; margin-bottom: 16px; background: #f9fafb; padding: 10px 12px; border-radius: 6px; border-left: 3px solid #3b82f6; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 600; margin-bottom: 6px; color: #374151; font-size: 14px; }
+        input[type="text"] { width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        input[type="text"]:focus { outline: none; border-color: #3b82f6; }
         .search-box { margin-bottom: 10px; }
-        .search-results { max-height: 320px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: #fff; }
-        .user-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .user-item:hover { background: #f8f9fa; }
-        .user-item.selected { background: #e7f3ff; border-left: 3px solid #007bff; }
+        .search-results { max-height: 320px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 6px; background: #fff; }
+        .user-item { padding: 14px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s; }
+        .user-item:hover { background: #f9fafb; }
+        .user-item.selected { background: #eff6ff; border-left: 3px solid #3b82f6; }
         .user-info { flex: 1; }
-        .user-name { font-weight: bold; }
-        .user-email { font-size: 12px; color: #666; }
-        .skill-tag { display: inline-block; background: #e9ecef; padding: 2px 6px; border-radius: 3px; margin-right: 4px; font-size: 11px; }
-        .buttons { display: flex; gap: 12px; margin-top: 20px; }
-        .btn { padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        .btn-primary { background: #007bff; color: #fff; }
-        .btn-secondary { background: #6c757d; color: #fff; text-decoration: none; display: inline-block; text-align: center; }
+        .user-name { font-weight: 600; color: #111827; }
+        .user-email { font-size: 13px; color: #6b7280; margin-top: 2px; }
+        .skill-tag { display: inline-block; background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 12px; margin-right: 6px; font-size: 12px; font-weight: 500; margin-top: 6px; }
+        .buttons { display: flex; gap: 12px; margin-top: 24px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 14px; transition: all 0.2s; }
+        .btn-primary { background: #3b82f6; color: #fff; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-secondary { background: #6b7280; color: #fff; text-decoration: none; display: inline-block; text-align: center; }
+        .btn-secondary:hover { background: #4b5563; }
+        input[type="checkbox"] { cursor: pointer; width: 18px; height: 18px; }
     </style>
 </head>
 <body>
+<div th:insert="~{fragments/header}"></div>
 <div class="container">
     <h1 th:text="'Team bearbeiten: ' + ${team.name}">Team bearbeiten</h1>
     <div class="note">Bereits vorhandene Mitglieder sind vorausgewählt. Entfernen wird nicht durchgeführt.</div>
@@ -70,7 +75,7 @@
 
         <div class="buttons">
             <button type="submit" class="btn btn-primary">✓ Speichern</button>
-            <a class="btn btn-secondary" href="/home">Abbrechen</a>
+            <a class="btn btn-secondary" href="/home" style="text-decoration: none;">← Zurück</a>
         </div>
     </form>
 </div>

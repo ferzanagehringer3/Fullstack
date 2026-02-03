@@ -16,6 +16,7 @@ import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,6 +37,8 @@ public class HelloController {
     private final EmailService emailService;
     private final Argon2PasswordEncoder encoder;
 
+    public HelloController(TeamService teamService, AppUserRepository userRepository,
+            MessageRepository messageRepository, TeamRepository teamRepository) {
     public HelloController(TeamService teamService, AppUserRepository userRepository, 
                           MessageRepository messageRepository, TeamRepository teamRepository,
                           EmailService emailService) {
@@ -47,6 +50,26 @@ public class HelloController {
         this.encoder = Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
     }
 
+    @ModelAttribute
+    public void addCommonAttributes(HttpSession session, Model model) {
+        Long userId = (Long) session.getAttribute("userId");
+        
+        // Immer den aktuellen User aus der DB holen
+        if (userId != null) {
+            var userOpt = userRepository.findById(userId);
+            if (userOpt.isPresent()) {
+                AppUser user = userOpt.get();
+                model.addAttribute("userName", user.getName());
+                model.addAttribute("currentUserRole", user.getRole().name());
+                
+                // Profilbild hinzufügen (ist bereits als String gespeichert)
+                if (user.getProfilePicture() != null && !user.getProfilePicture().isEmpty()) {
+                    model.addAttribute("userProfilePicture", user.getProfilePicture());
+                }
+            }
+        }
+    }
+
     @GetMapping("/")
     public String root() {
         return "redirect:/login";
@@ -55,7 +78,7 @@ public class HelloController {
     @GetMapping("/login")
     public String loginPage() {
         return "login";
-    } 
+    }
 
     @PostMapping("/login")
     public String login(@RequestParam String email,
@@ -115,7 +138,7 @@ public class HelloController {
     }
 
     @PostMapping("/profile/update")
-        public String updateProfile(@RequestParam String name,
+    public String updateProfile(@RequestParam String name,
             @RequestParam String email,
             @RequestParam String roleParam,
             @RequestParam(value = "skills", required = false) String[] skills,
@@ -189,7 +212,8 @@ public class HelloController {
 
     // ✅ Team erstellen: nimmt den eingeloggten User statt defaultUserId=1
     @PostMapping("/home/team/create")
-    public String createTeam(@RequestParam String teamName, @RequestParam Long ownerId, @RequestParam Long departmentId, @RequestParam String description, HttpSession session, Model model) {
+    public String createTeam(@RequestParam String teamName, @RequestParam Long ownerId, @RequestParam Long departmentId,
+            @RequestParam String description, HttpSession session, Model model) {
         Long userId = (Long) session.getAttribute("userId");
         if (userId == null)
             return "redirect:/login";
@@ -227,9 +251,9 @@ public class HelloController {
 
     @PostMapping("/home/messages/send")
     @ResponseBody
-    public String sendMessage(@RequestParam Long teamId, 
-                             @RequestParam String content,
-                             HttpSession session) {
+    public String sendMessage(@RequestParam Long teamId,
+            @RequestParam String content,
+            HttpSession session) {
         Long userId = (Long) session.getAttribute("userId");
         if (userId == null) {
             return "{\"error\": \"Not logged in\"}";
@@ -237,6 +261,17 @@ public class HelloController {
 
         try {
             Team team = teamRepository.findById(teamId).orElseThrow();
+                      return "{\"success\": true}";
+        } catch (Exception e) {
+            return "{\"error\": \"" + e.getMessage() + "\"}";
+        }
+    }
+
+            AppUser user = userRepository.findById(userId).orElseThrow();
+
+            Message message = new Message(team, user, content);
+            messageRepository.save(message);
+
             AppUser sender = userRepository.findById(userId).orElseThrow();
             
             Message message = new Message(team, sender, content);
@@ -255,11 +290,6 @@ public class HelloController {
                 }
             }
             
-            return "{\"success\": true}";
-        } catch (Exception e) {
-            return "{\"error\": \"" + e.getMessage() + "\"}";
-        }
-    }
 
     @GetMapping("/home/messages/{teamId}")
     @ResponseBody
@@ -270,16 +300,16 @@ public class HelloController {
         }
 
         return messageRepository.findByTeamIdOrderByCreatedAtAsc(teamId).stream()
-            .map(m -> new MessageDto(
-                m.getId(),
-                m.getSender().getName(),
-                m.getContent(),
-                m.getCreatedAt().toString()
-            ))
-            .toList();
+                .map(m -> new MessageDto(
+                        m.getId(),
+                        m.getSender().getName(),
+                        m.getContent(),
+                        m.getCreatedAt().toString()))
+                .toList();
     }
 
-    public record MessageDto(Long id, String senderName, String content, String createdAt) {}
+    public record MessageDto(Long id, String senderName, String content, String createdAt) {
+    }
 
     @PostMapping("/home/teams/{teamId}/mark-as-read")
     @ResponseBody
@@ -291,7 +321,8 @@ public class HelloController {
 
         // Store the current message count for this team in session
         @SuppressWarnings("unchecked")
-        java.util.Map<String, Integer> teamMessageCounts = (java.util.Map<String, Integer>) session.getAttribute("teamMessageCounts");
+        java.util.Map<String, Integer> teamMessageCounts = (java.util.Map<String, Integer>) session
+                .getAttribute("teamMessageCounts");
         if (teamMessageCounts == null) {
             teamMessageCounts = new java.util.HashMap<>();
             session.setAttribute("teamMessageCounts", teamMessageCounts);
@@ -300,7 +331,7 @@ public class HelloController {
         // Get total message count for this team
         java.util.List<Message> allMessages = messageRepository.findByTeamIdOrderByCreatedAtAsc(teamId);
         teamMessageCounts.put(teamId.toString(), allMessages.size());
-        
+
         return "{\"success\": true}";
     }
 
@@ -313,8 +344,9 @@ public class HelloController {
         }
 
         @SuppressWarnings("unchecked")
-        java.util.Map<String, Integer> teamMessageCounts = (java.util.Map<String, Integer>) session.getAttribute("teamMessageCounts");
-        
+        java.util.Map<String, Integer> teamMessageCounts = (java.util.Map<String, Integer>) session
+                .getAttribute("teamMessageCounts");
+
         int lastSeenCount = 0;
         if (teamMessageCounts != null && teamMessageCounts.containsKey(teamId.toString())) {
             lastSeenCount = teamMessageCounts.get(teamId.toString());
@@ -322,11 +354,11 @@ public class HelloController {
 
         // Get all messages for this team
         java.util.List<Message> allMessages = messageRepository.findByTeamIdOrderByCreatedAtAsc(teamId);
-        
+
         // Count NEW messages from other users (messages after the last seen count)
         int unreadCount = 0;
         String currentUserName = (String) session.getAttribute("userName");
-        
+
         for (int i = lastSeenCount; i < allMessages.size(); i++) {
             Message msg = allMessages.get(i);
             if (!msg.getSender().getName().equals(currentUserName)) {
