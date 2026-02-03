@@ -2,12 +2,12 @@
 <html lang="de" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login Page</title>
 
-  <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css">
-  <link rel="stylesheet" th:href="@{/css/login.css}" href="/css/login.css">
+  <link rel="stylesheet" th:href="@{/css/main.css}" href="/css/main.css" />
+  <link rel="stylesheet" th:href="@{/css/login.css}" href="/css/login.css" />
 </head>
 
 <body class="login-page">
@@ -17,38 +17,82 @@
     <form id="registerForm">
       <div class="form-group">
         <label for="name">Name und Nachname</label>
-        <input type="text" id="name" name="name" placeholder="Enter your name and surname" required>
+        <input type="text" id="name" name="name" placeholder="Enter your name and surname" required />
       </div>
 
       <div class="form-group">
         <label for="email">Email</label>
-        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+        <input type="email" id="email" name="email" placeholder="Enter your email" required />
       </div>
 
       <div class="form-group">
-        <label class="form-section-title">Fähigkeiten</label>
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="Enter your password" required />
       </div>
-  </div>
 
-  <div class="form-group">
-    <label for="role">Role</label>
-    <select id="role" name="role" required>
-      <option value="">-- Select a role" --</option>
-      <option value="user">User</option>
-      <option value="admin">Admin</option>
-      <option value="moderator">Moderator</option>
-    </select>
-  </div>
+      <div class="form-group">
+        <label class="form-section-title">Faehigkeiten</label>
+        <div id="skillsContainer"></div>
+      </div>
 
-  <p id="formError" style="display:none; margin-top:12px;"></p>
-  <button id="submitBtn" type="submit">Submit</button>
-  </form>
-  </div>
+      <div class="form-group">
+        <label for="role">Role</label>
+        <select id="role" name="role" required>
+          <option value="">-- Select a role --</option>
+          <option value="USER">User</option>
+          <option value="MANAGER">Manager</option>
+        </select>
+      </div>
 
+      <p id="formError" style="display:none; margin-top:12px;"></p>
+      <button id="submitBtn" type="submit">Submit</button>
+    </form>
+  </div>
   <script>
     const form = document.getElementById("registerForm");
     const errorEl = document.getElementById("formError");
     const submitBtn = document.getElementById("submitBtn");
+    const skillsContainer = document.getElementById("skillsContainer");
+
+    // ✅ Skills automatisch rendern (Value muss Enum-Name sein!)
+    const SKILLS = [
+      ["JAVA", "Java"],
+      ["PYTHON", "Python"],
+      ["JAVASCRIPT", "JavaScript"],
+      ["TYPESCRIPT", "TypeScript"],
+      ["SPRING_BOOT", "Spring Boot"],
+      ["REACT", "React"],
+      ["ANGULAR", "Angular"],
+      ["VUE", "Vue.js"],
+      ["SQL", "SQL"],
+      ["MONGODB", "MongoDB"],
+      ["DOCKER", "Docker"],
+      ["KUBERNETES", "Kubernetes"],
+      ["GIT", "Git"],
+      ["LINUX", "Linux"],
+      ["AGILE", "Agile"],
+      ["REST_API", "REST API"],
+      ["GRAPHQL", "GraphQL"],
+      ["MICROSERVICES", "Microservices"],
+      ["AWS", "AWS"],
+      ["AZURE", "Azure"],
+      ["GCP", "Google Cloud"],
+      ["TESTING", "Testing/JUnit"],
+      ["MAVEN", "Maven"],
+      ["GRADLE", "Gradle"],
+      ["HTML_CSS", "HTML/CSS"],
+      ["DEVOPS", "DevOps"],
+      ["CI_CD", "CI/CD"],
+      ["FIGMA", "Figma"],
+      ["UX_UI", "UX/UI Design"]
+    ];
+
+    skillsContainer.innerHTML = SKILLS.map(([value, label]) => `
+    <label style="display:inline-flex; gap:8px; align-items:center; margin-right:14px; margin-bottom:8px;">
+      <input type="checkbox" name="skills" value="${value}">
+      ${label}
+    </label>
+  `).join("");
 
     function showError(msg) {
       errorEl.style.display = "block";
@@ -58,22 +102,24 @@
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       errorEl.style.display = "none";
-
       submitBtn.disabled = true;
 
-      const firstName = document.getElementById("name").value.trim();
+      const name = document.getElementById("name").value.trim();
       const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
       const role = document.getElementById("role").value;
 
-      const selectedSkill = document.querySelector("input[name='skills']:checked")?.value;
-      const skillName = selectedSkill ? (skillMap[selectedSkill] || selectedSkill) : null;
+      const skills = Array.from(document.querySelectorAll("input[name='skills']:checked"))
+        .map(el => el.value); // ["JAVA","SQL",...]
+
+      // ✅ payload war vorher nicht definiert
+      const payload = { name, email, password, role, skills };
 
       try {
-        const res = await fetch("/api/users/register", {
+        // ✅ richtiger Endpoint
+        const res = await fetch("/api/users", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
 
@@ -82,8 +128,7 @@
           throw new Error(text || `HTTP ${res.status}`);
         }
 
-        const createdUser = await res.json();
-
+        await res.json();
         window.location.href = "/home";
       } catch (err) {
         showError("Konnte User nicht erstellen: " + err.message);
@@ -91,8 +136,8 @@
         submitBtn.disabled = false;
       }
     });
-
   </script>
+
 </body>
 
 </html>
