@@ -71,4 +71,9 @@ public String root() {
         model.addAttribute("users", userRepository.findAll());
         return "home";
     }
+
+    @GetMapping("/logout")
+    public String logout() {
+        return "redirect:/login";
+    }
 }
