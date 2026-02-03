@@ -46,4 +46,19 @@ public List<Team> findByRequestId(Long requestId) {
     return teamRepo.findByRequestId(requestId);
 }
 
+public Team createTeam(String name, Long creatorId) {
+    AppUser creator = userRepo.findById(creatorId).orElseThrow(() -> new RuntimeException("User not found"));
+    Request dummyRequest = requestRepo.findAll().stream().findFirst().orElseThrow(() -> new RuntimeException("No request found"));
+    Team team = new Team(name, dummyRequest, creator);
+    team.addMember(creator);
+    return teamRepo.save(team);
+}
+
+public void addMemberToTeam(Long teamId, Long userId) {
+    Team team = teamRepo.findById(teamId).orElseThrow(() -> new RuntimeException("Team not found"));
+    AppUser user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+    team.addMember(user);
+    teamRepo.save(team);
+}
+
 }

@@ -7,7 +7,7 @@
   <style>
     body { margin: 0; font-family: Arial, sans-serif; }
     .app { height: 100vh; display: flex; }
-    .left { width: 240px; border-right: 1px solid #ddd; padding: 12px; }
+    .left { width: 240px; border-right: 1px solid #ddd; padding: 12px; overflow-y: auto; }
     .main { flex: 1; padding: 12px; display: flex; flex-direction: column; }
     .teams button { display: block; width: 100%; margin: 6px 0; padding: 8px; text-align: left; }
     .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
@@ -15,6 +15,16 @@
     .msg { margin: 6px 0; }
     .composer { display: flex; gap: 8px; border-top: 1px solid #ddd; padding-top: 10px; }
     input[type="text"] { flex: 1; padding: 8px; }
+    .form-group { margin: 12px 0; }
+    .form-group label { display: block; font-weight: bold; margin-bottom: 4px; }
+    .form-group input, .form-group select { width: 100%; padding: 6px; box-sizing: border-box; }
+    .form-group button { background: #28a745; color: #fff; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin-top: 8px; }
+    .form-group button:hover { background: #218838; }
+    .message { padding: 10px; border-radius: 4px; margin-bottom: 10px; }
+    .message.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .message.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .create-team { background: #f5f5f5; padding: 12px; border-radius: 4px; margin-bottom: 12px; }
+    .add-member { background: #f5f5f5; padding: 12px; border-radius: 4px; margin-bottom: 12px; }
   </style>
 </head>
 
@@ -23,6 +33,17 @@
     <!-- LEFT: Teams -->
     <div class="left">
       <h3>Teams</h3>
+
+      <!-- Create Team Button -->
+      <div style="margin-bottom: 12px;">
+        <a href="/teams/create" style="text-decoration: none;">
+          <button style="width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+            + Neues Team erstellen
+          </button>
+        </a>
+      </div>
+
+      <!-- Team List -->
       <div class="teams" id="teamList">
         <div th:if="${#lists.isEmpty(teams)}">Keine Teams vorhanden</div>
         <button th:each="t : ${teams}"
@@ -37,6 +58,9 @@
 
     <!-- CENTER: Chat -->
     <div class="main">
+      <div th:if="${successMessage}" class="message success" th:text="${successMessage}"></div>
+      <div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
+
       <div class="header">
         <h2 id="teamTitle" th:if="${!#lists.isEmpty(teams)}" th:text="${teams[0].name}">Team</h2>
         <h2 id="teamTitle" th:if="${#lists.isEmpty(teams)}">Kein Team</h2>
@@ -50,8 +74,8 @@
         <button id="filesBtn" th:if="${#lists.isEmpty(teams)}" disabled>Files</button>
       </div>
 
-      <div class="chat" id="chatBox">
-        <div class="msg"><b>Alice:</b> Hello team!</div>
+      <!-- Add Member Form -->
+      <div class="add-member" th:if="${!#lists.isEmpty(teams)}">
         <div class="msg"><b>Bob:</b> Hi!</div>
       </div>
 
