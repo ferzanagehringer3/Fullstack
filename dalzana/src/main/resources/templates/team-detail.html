@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Details</title>
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { margin-top: 0; color: #333; }
+        .members { margin-top: 16px; }
+        .member { padding: 10px; border-bottom: 1px solid #eee; }
+        .member-name { font-weight: bold; }
+        .member-email { font-size: 12px; color: #666; }
+        .skills { margin-top: 6px; }
+        .skill-tag { display: inline-block; background: #e9ecef; padding: 2px 6px; border-radius: 3px; margin-right: 4px; font-size: 11px; }
+        .actions { display: flex; gap: 10px; margin-top: 20px; }
+        .btn { padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #007bff; color: #fff; }
+        .btn-secondary { background: #6c757d; color: #fff; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a class="btn btn-secondary" href="/home">← Zurück</a>
+
+    <h1 th:text="${team.name}">Team Name</h1>
+    <p>Mitglieder</p>
+
+    <div class="members">
+        <div th:if="${#sets.isEmpty(team.members)}">Keine Mitglieder</div>
+        <div th:each="m : ${team.members}" class="member">
+            <div class="member-name" th:text="${m.name}">Name</div>
+            <div class="member-email" th:text="${m.email}">email</div>
+            <div class="skills" th:if="${!#sets.isEmpty(m.skills)}">
+                <span th:each="s : ${m.skills}" class="skill-tag" th:text="${s}">Skill</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <a class="btn btn-primary" th:href="@{/teams/{id}/edit(id=${team.id})}">Mitglied hinzufügen</a>
+    </div>
+</div>
+</body>
+</html>

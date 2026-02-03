@@ -42,13 +42,13 @@ public String root() {
     }
 
     @PostMapping("/home/team/create")
-    public String createTeam(@RequestParam String teamName, Model model) {
+    public String createTeam(@RequestParam String teamName, @RequestParam(required = false) Long userId, @RequestParam(required = false) String description, Model model) {
         try {
-            Long defaultUserId = 1L;
+            Long defaultUserId = userId != null ? userId : 1L;
             if (!userRepository.existsById(defaultUserId)) {
                 model.addAttribute("errorMessage", "❌ Kein User gefunden. Bitte registrieren Sie sich zuerst.");
             } else {
-                teamService.createTeam(teamName, defaultUserId);
+                teamService.createTeam(teamName, defaultUserId, defaultUserId, description != null ? description : "");
                 model.addAttribute("successMessage", "✅ Team erstellt!");
             }
         } catch (Exception e) {

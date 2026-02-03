@@ -45,5 +45,7 @@ public class Request {
     public void removeRequiredSkill(Skill skill) { this.requiredSkills.remove(skill); }
     public void clearRequiredSkills() { this.requiredSkills.clear(); }
     public void setStatus(RequestStatus status) { this.status = status; }
+    public void setDescription(String description) { this.description = description; }
+    public void setTitle(String title) { this.title = title; }
 }
 

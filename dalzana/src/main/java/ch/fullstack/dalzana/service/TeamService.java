@@ -46,10 +46,16 @@ public List<Team> findByRequestId(Long requestId) {
     return teamRepo.findByRequestId(requestId);
 }
 
-public Team createTeam(String name, Long creatorId) {
+public Team createTeam(String name, Long creatorId, Long requestId, String requestDescription) {
     AppUser creator = userRepo.findById(creatorId).orElseThrow(() -> new RuntimeException("User not found"));
-    Request dummyRequest = requestRepo.findAll().stream().findFirst().orElseThrow(() -> new RuntimeException("No request found"));
-    Team team = new Team(name, dummyRequest, creator);
+    Request request = requestRepo.findById(requestId).orElseThrow(() -> new RuntimeException("Request not found"));
+
+    if (requestDescription != null && !requestDescription.trim().isEmpty()) {
+        request.setDescription(requestDescription.trim());
+        requestRepo.save(request);
+    }
+
+    Team team = new Team(name, request, creator);
     team.addMember(creator);
     return teamRepo.save(team);
 }
@@ -59,6 +65,19 @@ public void addMemberToTeam(Long teamId, Long userId) {
     AppUser user = userRepo.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
     team.addMember(user);
     teamRepo.save(team);
+}
+
+public void deleteTeam(Long teamId) {
+    Team team = teamRepo.findById(teamId).orElseThrow(() -> new RuntimeException("Team not found"));
+    teamRepo.delete(team);
+}
+
+public void updateTeamName(Long teamId, String name) {
+    Team team = teamRepo.findById(teamId).orElseThrow(() -> new RuntimeException("Team not found"));
+    if (name != null && !name.trim().isEmpty()) {
+        team.setName(name.trim());
+        teamRepo.save(team);
+    }
 }
 
 }

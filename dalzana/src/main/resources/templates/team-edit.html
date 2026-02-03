@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team bearbeiten</title>
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { margin-top: 0; color: #333; }
+        .note { font-size: 13px; color: #666; margin-bottom: 12px; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; font-weight: bold; margin-bottom: 6px; color: #555; }
+        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        .search-box { margin-bottom: 10px; }
+        .search-results { max-height: 320px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: #fff; }
+        .user-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .user-item:hover { background: #f8f9fa; }
+        .user-item.selected { background: #e7f3ff; border-left: 3px solid #007bff; }
+        .user-info { flex: 1; }
+        .user-name { font-weight: bold; }
+        .user-email { font-size: 12px; color: #666; }
+        .skill-tag { display: inline-block; background: #e9ecef; padding: 2px 6px; border-radius: 3px; margin-right: 4px; font-size: 11px; }
+        .buttons { display: flex; gap: 12px; margin-top: 20px; }
+        .btn { padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-primary { background: #007bff; color: #fff; }
+        .btn-secondary { background: #6c757d; color: #fff; text-decoration: none; display: inline-block; text-align: center; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 th:text="'Team bearbeiten: ' + ${team.name}">Team bearbeiten</h1>
+    <div class="note">Bereits vorhandene Mitglieder sind vorausgewählt. Entfernen wird nicht durchgeführt.</div>
+
+    <form method="POST" th:action="@{/teams/{id}/edit(id=${team.id})}">
+        <div class="form-group">
+            <label for="teamName">Team Name</label>
+            <input type="text" id="teamName" name="teamName" th:value="${team.name}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="searchBox">Mitglieder suchen</label>
+            <div class="search-box">
+                <input type="text" id="searchBox" placeholder="Suche nach Name, Email oder Skill...">
+            </div>
+        </div>
+
+        <div class="search-results" id="userResults">
+            <div th:each="u : ${users}"
+                 class="user-item"
+                 th:data-user-name="${u.name}"
+                 th:data-user-email="${u.email}"
+                 th:data-user-skills="${u.skills}">
+                <div class="user-info">
+                    <div class="user-name" th:text="${u.name}">User</div>
+                    <div class="user-email" th:text="${u.email}">email</div>
+                    <div th:if="${!#sets.isEmpty(u.skills)}">
+                        <span th:each="skill : ${u.skills}" class="skill-tag" th:text="${skill}">Skill</span>
+                    </div>
+                </div>
+                <input type="checkbox"
+                       class="user-checkbox"
+                       name="userIds"
+                       th:value="${u.id}"
+                       th:checked="${memberIds.contains(u.id)}" />
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button type="submit" class="btn btn-primary">✓ Speichern</button>
+            <a class="btn btn-secondary" href="/home">Abbrechen</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    const searchBox = document.getElementById('searchBox');
+    const userItems = document.querySelectorAll('.user-item');
+
+    searchBox.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        userItems.forEach(item => {
+            const name = item.dataset.userName.toLowerCase();
+            const email = item.dataset.userEmail.toLowerCase();
+            const skills = item.dataset.userSkills.toLowerCase();
+            const matches = name.includes(query) || email.includes(query) || skills.includes(query);
+            item.style.display = matches || query === '' ? 'flex' : 'none';
+        });
+    });
+
+    userItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (e.target.classList.contains('user-checkbox')) return;
+            const cb = item.querySelector('.user-checkbox');
+            cb.checked = !cb.checked;
+            item.classList.toggle('selected', cb.checked);
+        });
+    });
+</script>
+</body>
+</html>

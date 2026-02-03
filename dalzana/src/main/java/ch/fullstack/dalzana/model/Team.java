@@ -55,4 +55,5 @@ public class Team {
     public LocalDateTime getCreatedAt() { return createdAt; }
 
     public void addMember(AppUser user) { this.members.add(user); }
+    public void setName(String name) { this.name = name; }
 }

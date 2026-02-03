@@ -9,8 +9,15 @@
     .app { height: 100vh; display: flex; }
     .left { width: 240px; border-right: 1px solid #ddd; padding: 12px; overflow-y: auto; }
     .main { flex: 1; padding: 12px; display: flex; flex-direction: column; }
-    .teams button { display: block; width: 100%; margin: 6px 0; padding: 8px; text-align: left; }
-    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
+    .teams .team-row { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
+    .teams button.team { flex: 1; padding: 8px; text-align: left; }
+    .teams .team-actions { display: flex; gap: 4px; }
+    .teams .team-actions a, .teams .team-actions button { padding: 6px 8px; font-size: 12px; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; gap: 12px; }
+    .team-title { display: flex; flex-direction: column; gap: 4px; }
+    .team-members { font-size: 12px; color: #888; }
+    .team-members a { color: #888; text-decoration: none; }
+    .team-members a:hover { text-decoration: underline; }
     .header-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
     .chat { flex: 1; padding: 12px 0; overflow: auto; }
     .msg { margin: 6px 0; }
@@ -47,13 +54,23 @@
       <!-- Team List -->
       <div class="teams" id="teamList">
         <div th:if="${#lists.isEmpty(teams)}">Keine Teams vorhanden</div>
-        <button th:each="t : ${teams}"
-                class="team"
-                th:data-team-id="${t.id}"
-                th:data-team-name="${t.name}"
-                th:text="${t.name}">
-          Team
-        </button>
+        <div th:each="t : ${teams}" class="team-row">
+          <button class="team"
+                  th:data-team-id="${t.id}"
+                  th:data-team-name="${t.name}"
+                  th:data-team-members="${#strings.listJoin(t.members.![name], ', ')}"
+                  th:text="${t.name}">
+            Team
+          </button>
+          <div class="team-actions">
+            <a th:href="@{/teams/{id}/edit(id=${t.id})}" style="text-decoration:none;">
+              <button type="button">Bearbeiten</button>
+            </a>
+            <form th:action="@{/teams/{id}/delete(id=${t.id})}" method="post" onsubmit="return confirm('Team wirklich löschen?');">
+              <button type="submit" style="background:#dc3545;color:#fff;border:none;border-radius:4px;">Löschen</button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -63,8 +80,17 @@
       <div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
 
       <div class="header">
-        <h2 id="teamTitle" th:if="${!#lists.isEmpty(teams)}" th:text="${teams[0].name}">Team</h2>
-        <h2 id="teamTitle" th:if="${#lists.isEmpty(teams)}">Kein Team</h2>
+        <div class="team-title">
+          <h2 id="teamTitle" th:if="${!#lists.isEmpty(teams)}" th:text="${teams[0].name}">Team</h2>
+          <h2 id="teamTitle" th:if="${#lists.isEmpty(teams)}">Kein Team</h2>
+
+          <div class="team-members" th:if="${!#lists.isEmpty(teams)}">
+            <a id="teamMembersLink"
+               th:href="@{/teams/{id}(id=${teams[0].id})}"
+               th:text="${#strings.listJoin(teams[0].members.![name], ', ')}">Mitglieder</a>
+          </div>
+          <div class="team-members" th:if="${#lists.isEmpty(teams)}">Keine Mitglieder</div>
+        </div>
 
         <div class="header-actions">
           <a id="filesLink"
@@ -103,6 +129,7 @@
 
       const teamName = btn.dataset.teamName;
       const teamId = btn.dataset.teamId;
+      const teamMembers = btn.dataset.teamMembers || '';
 
       if (teamName) {
         document.getElementById("teamTitle").textContent = teamName;
@@ -111,6 +138,12 @@
       const filesLink = document.getElementById("filesLink");
       if (filesLink && teamId) {
         filesLink.setAttribute("href", `/teams/${teamId}/files`);
+      }
+
+      const membersLink = document.getElementById("teamMembersLink");
+      if (membersLink && teamId) {
+        membersLink.setAttribute("href", `/teams/${teamId}`);
+        membersLink.textContent = teamMembers || 'Keine Mitglieder';
       }
     });
 

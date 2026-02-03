@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Detail</title>
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { margin-top: 0; }
+        .skill-tag { display: inline-block; background: #e9ecef; padding: 2px 6px; border-radius: 3px; margin-right: 4px; font-size: 11px; }
+        .btn { padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; }
+        .btn-primary { background: #007bff; color: #fff; }
+        .btn-secondary { background: #6c757d; color: #fff; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a class="btn btn-secondary" href="/requests">← Zurück</a>
+
+    <h1 th:text="${request.title}">Request</h1>
+    <p th:text="${request.description}">Beschreibung</p>
+
+    <div th:if="${!#sets.isEmpty(request.requiredSkills)}">
+        <h4>Benötigte Skills</h4>
+        <div>
+            <span th:each="skill : ${request.requiredSkills}" class="skill-tag" th:text="${skill}">Skill</span>
+        </div>
+    </div>
+
+    <div style="margin-top:20px;">
+        <a class="btn btn-primary" th:href="@{/teams/create(requestId=${request.id})}">Team erstellen</a>
+    </div>
+</div>
+</body>
+</html>
