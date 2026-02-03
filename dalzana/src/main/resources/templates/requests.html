@@ -36,7 +36,7 @@
     <div th:if="${successMessage}" class="message success" th:text="${successMessage}"></div>
     <div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
 
-    <form method="POST" th:action="@{/requests/create}">
+    <form th:if="${currentUserRole == 'MANAGER'}" method="POST" th:action="@{/requests/create}">
         <div class="form-group">
             <label for="title">Request Name *</label>
             <input type="text" id="title" name="title" required placeholder="z.B. Neues Dashboard">
@@ -67,7 +67,7 @@
                     <span th:each="skill : ${r.requiredSkills}" class="skill-tag" th:text="${skill}">Skill</span>
                 </div>
             </div>
-            <div style="display: flex; gap: 8px;">
+            <div th:if="${currentUserRole == 'MANAGER'}" style="display: flex; gap: 8px;">
                 <a class="btn btn-secondary" th:href="@{/requests/{id}/edit(id=${r.id})}" style="padding: 6px 12px; font-size: 13px;">✏️ Bearbeiten</a>
                 <form method="POST" th:action="@{/requests/{id}/delete(id=${r.id})}" style="margin: 0;" onsubmit="return confirm('Request wirklich löschen?');">
                     <button class="btn" type="submit" style="background: #dc3545; color: #fff; padding: 6px 12px; font-size: 13px;">🗑️ Löschen</button>

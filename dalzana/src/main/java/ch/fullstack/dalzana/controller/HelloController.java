@@ -76,7 +76,7 @@ public class HelloController {
         if (userId == null)
             return "redirect:/login";
 
-        model.addAttribute("teams", teamService.findAll());
+        model.addAttribute("teams", teamService.findByUserId(userId));
         model.addAttribute("users", userRepository.findAll());
         model.addAttribute("currentUserId", userId);
         model.addAttribute("currentUserName", session.getAttribute("userName"));

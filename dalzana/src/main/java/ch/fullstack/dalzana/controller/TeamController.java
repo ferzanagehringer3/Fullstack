@@ -3,6 +3,7 @@ package ch.fullstack.dalzana.controller;
 import ch.fullstack.dalzana.service.TeamService;
 import ch.fullstack.dalzana.repo.AppUserRepository;
 import ch.fullstack.dalzana.repo.RequestRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +27,13 @@ public class TeamController {
     }
 
     @GetMapping("/create")
-    public String createPage(@RequestParam(required = false) Long requestId, Model model) {
+    public String createPage(@RequestParam(required = false) Long requestId, Model model, HttpSession session, RedirectAttributes ra) {
+        String userRole = (String) session.getAttribute("userRole");
+        if (!"MANAGER".equals(userRole)) {
+            ra.addFlashAttribute("errorMessage", "❌ Nur Manager können Teams erstellen.");
+            return "redirect:/home";
+        }
+        
         model.addAttribute("users", userRepository.findAll());
         model.addAttribute("requests", requestRepository.findAll());
         model.addAttribute("selectedRequestId", requestId);
@@ -45,7 +52,15 @@ public class TeamController {
                             @RequestParam Long requestId,
                             @RequestParam(required = false) String requestDescription,
                             @RequestParam(required = false) Long[] userIds,
-                            Model model) {
+                            Model model,
+                            HttpSession session,
+                            RedirectAttributes ra) {
+        String userRole = (String) session.getAttribute("userRole");
+        if (!"MANAGER".equals(userRole)) {
+            ra.addFlashAttribute("errorMessage", "❌ Nur Manager können Teams erstellen.");
+            return "redirect:/home";
+        }
+        
         try {
             Long defaultUserId = 1L;
             if (!userRepository.existsById(defaultUserId)) {
@@ -75,7 +90,13 @@ public class TeamController {
     }
 
     @GetMapping("/{id}/edit")
-    public String editPage(@PathVariable Long id, Model model) {
+    public String editPage(@PathVariable Long id, Model model, HttpSession session, RedirectAttributes ra) {
+        String userRole = (String) session.getAttribute("userRole");
+        if (!"MANAGER".equals(userRole)) {
+            ra.addFlashAttribute("errorMessage", "❌ Nur Manager können Teams bearbeiten.");
+            return "redirect:/home";
+        }
+        
         var team = teamService.findById(id);
         Set<Long> memberIds = team.getMembers().stream()
                 .map(m -> m.getId())
@@ -91,7 +112,14 @@ public class TeamController {
     public String editTeam(@PathVariable Long id,
                            @RequestParam(required = false) String teamName,
                            @RequestParam(required = false) Long[] userIds,
+                           HttpSession session,
                            RedirectAttributes redirectAttributes) {
+        String userRole = (String) session.getAttribute("userRole");
+        if (!"MANAGER".equals(userRole)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "❌ Nur Manager können Teams bearbeiten.");
+            return "redirect:/home";
+        }
+        
         try {
             teamService.updateTeamName(id, teamName);
             if (userIds != null) {
@@ -111,7 +139,14 @@ public class TeamController {
 
     @PostMapping("/{id}/delete")
     public String deleteTeam(@PathVariable Long id,
+                             HttpSession session,
                              RedirectAttributes redirectAttributes) {
+        String userRole = (String) session.getAttribute("userRole");
+        if (!"MANAGER".equals(userRole)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "❌ Nur Manager können Teams löschen.");
+            return "redirect:/home";
+        }
+        
         try {
             teamService.deleteTeam(id);
             redirectAttributes.addFlashAttribute("successMessage", "✅ Team gelöscht.");
