@@ -35,4 +35,9 @@ public String root() {
         model.addAttribute("teams", teamService.findAll());
         return "home";
     }
+
+    @GetMapping("/logout")
+    public String logout() {
+        return "redirect:/login";
+    }
 }

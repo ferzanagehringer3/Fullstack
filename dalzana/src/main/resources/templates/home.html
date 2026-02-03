@@ -11,6 +11,7 @@
     .main { flex: 1; padding: 12px; display: flex; flex-direction: column; }
     .teams button { display: block; width: 100%; margin: 6px 0; padding: 8px; text-align: left; }
     .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
+    .header-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
     .chat { flex: 1; padding: 12px 0; overflow: auto; }
     .msg { margin: 6px 0; }
     .composer { display: flex; gap: 8px; border-top: 1px solid #ddd; padding-top: 10px; }
@@ -41,13 +42,19 @@
         <h2 id="teamTitle" th:if="${!#lists.isEmpty(teams)}" th:text="${teams[0].name}">Team</h2>
         <h2 id="teamTitle" th:if="${#lists.isEmpty(teams)}">Kein Team</h2>
 
-        <a id="filesLink"
-           th:if="${!#lists.isEmpty(teams)}"
-           th:href="@{/teams/{teamId}/files(teamId=${teams[0].id})}"
-           style="text-decoration: none;">
-          <button id="filesBtn">Files</button>
-        </a>
-        <button id="filesBtn" th:if="${#lists.isEmpty(teams)}" disabled>Files</button>
+        <div class="header-actions">
+          <a id="filesLink"
+             th:if="${!#lists.isEmpty(teams)}"
+             th:href="@{/teams/{teamId}/files(teamId=${teams[0].id})}"
+             style="text-decoration: none;">
+            <button id="filesBtn">Files</button>
+          </a>
+          <button id="filesBtn" th:if="${#lists.isEmpty(teams)}" disabled>Files</button>
+
+          <a id="logoutLink" th:href="@{/logout}" style="text-decoration: none;">
+            <button id="logoutBtn">Logout</button>
+          </a>
+        </div>
       </div>
 
       <div class="chat" id="chatBox">
