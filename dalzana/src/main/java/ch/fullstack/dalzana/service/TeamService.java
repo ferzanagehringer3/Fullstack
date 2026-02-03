@@ -3,6 +3,7 @@ package ch.fullstack.dalzana.service;
 import ch.fullstack.dalzana.model.*;
 import ch.fullstack.dalzana.repo.*;
 import org.springframework.stereotype.Service;
+import java.util.List;
 
 @Service
 public class TeamService {
@@ -36,4 +37,13 @@ public class TeamService {
     public Team findById(Long id) {
         return teamRepo.findById(id).orElseThrow();
     }
+
+    public List<Team> findAll() {
+    return teamRepo.findAll();
+}
+
+public List<Team> findByRequestId(Long requestId) {
+    return teamRepo.findByRequestId(requestId);
+}
+
 }
