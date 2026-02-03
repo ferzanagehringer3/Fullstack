@@ -10,7 +10,18 @@
     .left { width: 240px; border-right: 1px solid #ddd; padding: 12px; overflow-y: auto; }
     .main { flex: 1; padding: 12px; display: flex; flex-direction: column; }
     .teams .team-row { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
-    .teams button.team { flex: 1; padding: 8px; text-align: left; }
+    .teams button.team { flex: 1; padding: 8px; text-align: left; position: relative; }
+    .teams .team-badge {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: #dc3545;
+      border-radius: 50%;
+      width: 12px;
+      height: 12px;
+      display: none;
+      animation: pulse 1s infinite;
+    }
     .teams .team-actions { display: flex; gap: 4px; }
     .teams .team-actions a, .teams .team-actions button { padding: 6px 8px; font-size: 12px; }
     .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; gap: 12px; }
@@ -21,6 +32,8 @@
     .header-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
     .chat { flex: 1; padding: 12px 0; overflow: auto; }
     .msg { margin: 6px 0; }
+    .msg.new-message { background: #fff3cd; padding: 4px; border-radius: 4px; animation: highlight 2s ease-out; }
+    @keyframes highlight { from { background: #fff3cd; } to { background: transparent; } }
     .composer { display: flex; gap: 8px; border-top: 1px solid #ddd; padding-top: 10px; }
     input[type="text"] { flex: 1; padding: 8px; }
     .form-group { margin: 12px 0; }
@@ -112,20 +125,46 @@
 
       <!-- Add Member Form -->
       <div class="add-member" th:if="${!#lists.isEmpty(teams)}">
-        <div class="msg"><b>Bob:</b> Hi!</div>
+        <div class="chat" id="chatBox">
+          <!-- Messages will be loaded here -->
+        </div>
       </div>
 
-      <form class="composer" id="chatForm">
+      <form class="composer" id="chatForm" th:if="${!#lists.isEmpty(teams)}">
         <input id="messageInput" type="text" placeholder="Type a message..." />
         <button type="submit">Send</button>
       </form>
+      <div th:if="${#lists.isEmpty(teams)}" style="text-align: center; color: #999; padding: 20px;">
+        Keine Teams vorhanden - erstelle ein Team um zu chatten
+      </div>
     </div>
   </div>
 
 
 
   <script>
-    // Switch team title + files link
+    let currentTeamId = null;
+    let messageInterval = null;
+    let teamLastMessageCount = {}; // Track message count per team
+    const currentUserName = /*[[${currentUserName}]]*/ 'Unknown';
+
+    // Initialize with first team if available
+    const teams = document.querySelectorAll('.team');
+    if (teams.length > 0) {
+      const firstTeam = teams[0];
+      currentTeamId = firstTeam.dataset.teamId;
+      
+      // Initialize message counts for all teams
+      teams.forEach(team => {
+        const teamId = team.dataset.teamId;
+        teamLastMessageCount[teamId] = 0;
+      });
+      
+      loadMessages();
+      startMessagePolling();
+    }
+
+    // Switch team title + files link + chat
     document.getElementById("teamList").addEventListener("click", (e) => {
       const btn = e.target.closest(".team");
       if (!btn) return;
@@ -133,6 +172,8 @@
       const teamName = btn.dataset.teamName;
       const teamId = btn.dataset.teamId;
       const teamMembers = btn.dataset.teamMembers || '';
+
+      currentTeamId = teamId;
 
       if (teamName) {
         document.getElementById("teamTitle").textContent = teamName;
@@ -148,24 +189,158 @@
         membersLink.setAttribute("href", `/teams/${teamId}`);
         membersLink.textContent = teamMembers || 'Keine Mitglieder';
       }
+
+      // Load messages for new team
+      loadMessages();
+      
+      // Clear badge for current team
+      updateTeamBadge(teamId, false);
     });
 
-    // Send message (mock)
-    document.getElementById("chatForm").addEventListener("submit", (e) => {
+    // Send message
+    document.getElementById("chatForm")?.addEventListener("submit", async (e) => {
       e.preventDefault();
       const input = document.getElementById("messageInput");
       const text = input.value.trim();
-      if (!text) return;
+      if (!text || !currentTeamId) return;
 
-      const msg = document.createElement("div");
-      msg.className = "msg";
-      msg.innerHTML = "<b>You:</b> " + text;
+      try {
+        const formData = new URLSearchParams();
+        formData.append('teamId', currentTeamId);
+        formData.append('content', text);
 
-      const box = document.getElementById("chatBox");
-      box.appendChild(msg);
-      box.scrollTop = box.scrollHeight;
-      input.value = "";
+        const response = await fetch('/home/messages/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: formData
+        });
+
+        if (response.ok) {
+          input.value = "";
+          loadMessages();
+        }
+      } catch (error) {
+        console.error('Error sending message:', error);
+      }
     });
+
+    // Load messages for current team
+    async function loadMessages() {
+      if (!currentTeamId) return;
+
+      try {
+        const response = await fetch(`/home/messages/${currentTeamId}`);
+        const messages = await response.json();
+
+        const chatBox = document.getElementById("chatBox");
+        chatBox.innerHTML = '';
+
+        messages.forEach(msg => {
+          const msgDiv = document.createElement("div");
+          msgDiv.className = "msg";
+          msgDiv.innerHTML = `<b>${msg.senderName}:</b> ${msg.content}`;
+          chatBox.appendChild(msgDiv);
+        });
+
+        // Update last seen count for current team
+        teamLastMessageCount[currentTeamId] = messages.length;
+        
+        chatBox.scrollTop = chatBox.scrollHeight;
+      } catch (error) {
+        console.error('Error loading messages:', error);
+      }
+    }
+
+    // Check all teams for new messages
+    async function checkAllTeamsForMessages() {
+      const teamButtons = document.querySelectorAll('.team');
+      
+      for (const teamBtn of teamButtons) {
+        const teamId = teamBtn.dataset.teamId;
+        if (!teamId) continue;
+        
+        try {
+          const response = await fetch(`/home/messages/${teamId}`);
+          const messages = await response.json();
+          
+          const previousCount = teamLastMessageCount[teamId] || 0;
+          const currentCount = messages.length;
+          
+          // Check if there are new messages from OTHER users
+          let hasNewMessagesFromOthers = false;
+          if (currentCount > previousCount) {
+            for (let i = previousCount; i < currentCount; i++) {
+              if (messages[i].senderName !== currentUserName) {
+                hasNewMessagesFromOthers = true;
+                break;
+              }
+            }
+          }
+          
+          // Only show badge for teams OTHER than the current one
+          if (teamId != currentTeamId && hasNewMessagesFromOthers) {
+            updateTeamBadge(teamId, true);
+            playNotificationSound();
+          }
+          
+        } catch (error) {
+          console.error(`Error checking messages for team ${teamId}:`, error);
+        }
+      }
+    }
+
+    // Update badge (show/hide red dot)
+    function updateTeamBadge(teamId, show) {
+      const teamBtn = document.querySelector(`.team[data-team-id="${teamId}"]`);
+      if (!teamBtn) return;
+      
+      let badge = teamBtn.querySelector('.team-badge');
+      
+      if (show) {
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'team-badge';
+          teamBtn.appendChild(badge);
+        }
+        badge.style.display = 'block';
+      } else {
+        if (badge) {
+          badge.style.display = 'none';
+        }
+      }
+    }
+
+    // Simple notification sound
+    function playNotificationSound() {
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+      } catch (error) {
+        console.log('Audio notification not available');
+      }
+    }
+
+    // Poll for new messages every 2 seconds
+    function startMessagePolling() {
+      if (messageInterval) clearInterval(messageInterval);
+      messageInterval = setInterval(() => {
+        loadMessages(); // Reload current team messages
+        checkAllTeamsForMessages(); // Check all teams for badges
+      }, 2000);
+    }
 
     // Files button links to selected team
   </script>
