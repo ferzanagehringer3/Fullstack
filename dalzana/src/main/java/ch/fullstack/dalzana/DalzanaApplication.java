@@ -11,6 +11,7 @@ import ch.fullstack.dalzana.model.Skill;
 import ch.fullstack.dalzana.model.role;
 import ch.fullstack.dalzana.repo.AppUserRepository;
 import ch.fullstack.dalzana.repo.RequestRepository;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 
 @SpringBootApplication
 public class DalzanaApplication {
@@ -26,6 +27,8 @@ public class DalzanaApplication {
     ) {
         return args -> {
 
+                            Argon2PasswordEncoder encoder = Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
+
             // 👉 Seed nur einmal ausführen
             if (requestRepo.count() > 0) {
                 System.out.println("ℹ️ Seed übersprungen – Daten existieren bereits.");
@@ -36,7 +39,8 @@ public class DalzanaApplication {
             AppUser manager = new AppUser(
                     "Manager Mia",
                     "manager@dalzana.ch",
-                    role.MANAGER
+                    role.MANAGER,
+                    encoder.encode("manager123")
             );
             manager.addSkill(Skill.JAVA);
             manager.addSkill(Skill.SPRING_BOOT);
@@ -44,7 +48,8 @@ public class DalzanaApplication {
             AppUser u1 = new AppUser(
                     "Ali",
                     "ali@dalzana.ch",
-                    role.USER
+                    role.USER,
+                    encoder.encode("user123")
             );
             u1.addSkill(Skill.JAVA);
             u1.addSkill(Skill.SQL);
@@ -52,7 +57,8 @@ public class DalzanaApplication {
             AppUser u2 = new AppUser(
                     "Sara",
                     "sara@dalzana.ch",
-                    role.USER
+                    role.USER,
+                    encoder.encode("user123")
             );
             u2.addSkill(Skill.FIGMA);
             u2.addSkill(Skill.UX_UI);
