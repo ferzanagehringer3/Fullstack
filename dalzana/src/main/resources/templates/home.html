@@ -93,6 +93,9 @@
         </div>
 
         <div class="header-actions">
+          <a id="profileLink" th:href="@{/profile}" style="text-decoration: none;">
+            <button id="profileBtn">Mein Profil</button>
+          </a>
           <a id="filesLink"
              th:if="${!#lists.isEmpty(teams)}"
              th:href="@{/teams/{teamId}/files(teamId=${teams[0].id})}"
