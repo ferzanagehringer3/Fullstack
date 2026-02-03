@@ -1,22 +1,43 @@
 package ch.fullstack.dalzana.model;
 
-import jakarta.persistence.*;
+public enum Skill {
+    JAVA("Java"),
+    PYTHON("Python"),
+    JAVASCRIPT("JavaScript"),
+    TYPESCRIPT("TypeScript"),
+    SPRING_BOOT("Spring Boot"),
+    REACT("React"),
+    ANGULAR("Angular"),
+    VUE("Vue.js"),
+    SQL("SQL"),
+    MONGODB("MongoDB"),
+    DOCKER("Docker"),
+    KUBERNETES("Kubernetes"),
+    GIT("Git"),
+    LINUX("Linux"),
+    AGILE("Agile"),
+    REST_API("REST API"),
+    GRAPHQL("GraphQL"),
+    MICROSERVICES("Microservices"),
+    AWS("AWS"),
+    AZURE("Azure"),
+    GCP("Google Cloud"),
+    TESTING("Testing/JUnit"),
+    MAVEN("Maven"),
+    GRADLE("Gradle"),
+    HTML_CSS("HTML/CSS"),
+    DEVOPS("DevOps"),
+    CI_CD("CI/CD"),
+    FIGMA("Figma"),
+    UX_UI("UX/UI Design");
 
-@Entity
-@Table(name = "skills")
-public class Skill {
+    private final String displayName;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Skill(String displayName) {
+        this.displayName = displayName;
+    }
 
-    @Column(nullable=false, unique=true)
-    private String name;
-
-    protected Skill() {}
-
-    public Skill(String name) { this.name = name; }
-
-    public Long getId() { return id; }
-    public String getName() { return name; }
+    public String getDisplayName() {
+        return displayName;
+    }
 }

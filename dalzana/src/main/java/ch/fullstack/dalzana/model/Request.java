@@ -1,7 +1,7 @@
 package ch.fullstack.dalzana.model;
 
 import jakarta.persistence.*;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
 
 @Entity
@@ -22,13 +22,11 @@ public class Request {
     @Column(nullable=false)
     private RequestStatus status = RequestStatus.NEW;
 
-    @ManyToMany
-    @JoinTable(
-            name = "request_required_skills",
-            joinColumns = @JoinColumn(name="request_id"),
-            inverseJoinColumns = @JoinColumn(name="skill_id")
-    )
-    private Set<Skill> requiredSkills = new HashSet<>();
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "request_required_skills", joinColumns = @JoinColumn(name="request_id"))
+    @Column(name = "skill")
+    private Set<Skill> requiredSkills = EnumSet.noneOf(Skill.class);
 
     protected Request() {}
 
@@ -44,4 +42,8 @@ public class Request {
     public Set<Skill> getRequiredSkills() { return requiredSkills; }
 
     public void addRequiredSkill(Skill skill) { this.requiredSkills.add(skill); }
+    public void removeRequiredSkill(Skill skill) { this.requiredSkills.remove(skill); }
+    public void clearRequiredSkills() { this.requiredSkills.clear(); }
+    public void setStatus(RequestStatus status) { this.status = status; }
 }
+

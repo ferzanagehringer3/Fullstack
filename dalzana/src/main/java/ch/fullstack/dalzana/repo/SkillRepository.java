@@ -1,10 +1,4 @@
 package ch.fullstack.dalzana.repo;
 
-import ch.fullstack.dalzana.model.Skill;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-import java.util.Optional;
-
-public interface SkillRepository extends JpaRepository<Skill, Long> {
-    Optional<Skill> findByName(String name);
-}
+// SkillRepository ist nicht mehr nötig, da Skill ein Enum ist
+// Die Skills sind jetzt vordefiniert und in der Skill.java Enum klasse definiert

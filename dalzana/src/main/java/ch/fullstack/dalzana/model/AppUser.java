@@ -1,7 +1,7 @@
 package ch.fullstack.dalzana.model;
 
 import jakarta.persistence.*;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Set;
 
 @Entity
@@ -25,13 +25,11 @@ public class AppUser {
     @Column(columnDefinition = "LONGTEXT")
     private String profilePicture;
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_skills",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "skill_id")
-    )
-    private Set<Skill> skills = new HashSet<>();
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "user_skills", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "skill")
+    private Set<Skill> skills = EnumSet.noneOf(Skill.class);
 
     protected AppUser() {}
 
@@ -51,4 +49,6 @@ public class AppUser {
 
     public void setProfilePicture(String profilePicture) { this.profilePicture = profilePicture; }
     public void addSkill(Skill skill) { this.skills.add(skill); }
+    public void removeSkill(Skill skill) { this.skills.remove(skill); }
+    public void clearSkills() { this.skills.clear(); }
 }

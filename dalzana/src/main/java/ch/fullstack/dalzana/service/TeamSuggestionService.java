@@ -7,7 +7,6 @@ import ch.fullstack.dalzana.repo.AppUserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class TeamSuggestionService {
@@ -19,21 +18,19 @@ public class TeamSuggestionService {
     }
 
     public List<AppUser> suggestTeam(Request request, int teamSize) {
-        Set<String> needed = request.getRequiredSkills().stream()
-                .map(Skill::getName)
-                .collect(Collectors.toSet());
+        Set<Skill> needed = request.getRequiredSkills();
 
         return userRepo.findAll().stream()
-                .filter(u -> u.getRole() != null) // (bei dir role enum)
+                .filter(u -> u.getRole() != null)
                 .sorted((a, b) -> Integer.compare(score(b, needed), score(a, needed)))
                 .limit(teamSize)
                 .toList();
     }
 
-    private int score(AppUser user, Set<String> needed) {
+    private int score(AppUser user, Set<Skill> needed) {
         int matches = 0;
-        for (Skill s : user.getSkills()) {
-            if (needed.contains(s.getName())) matches++;
+        for (Skill skill : user.getSkills()) {
+            if (needed.contains(skill)) matches++;
         }
         return matches;
     }

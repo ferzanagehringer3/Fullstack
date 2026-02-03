@@ -11,7 +11,6 @@ import ch.fullstack.dalzana.model.Skill;
 import ch.fullstack.dalzana.model.role;
 import ch.fullstack.dalzana.repo.AppUserRepository;
 import ch.fullstack.dalzana.repo.RequestRepository;
-import ch.fullstack.dalzana.repo.SkillRepository;
 
 @SpringBootApplication
 public class DalzanaApplication {
@@ -22,7 +21,6 @@ public class DalzanaApplication {
 
     @Bean
     CommandLineRunner seedData(
-            SkillRepository skillRepo,
             AppUserRepository userRepo,
             RequestRepository requestRepo
     ) {
@@ -34,35 +32,30 @@ public class DalzanaApplication {
                 return;
             }
 
-            // ---- Skills (idempotent) ----
-            Skill java = getOrCreateSkill(skillRepo, "Java");
-            Skill spring = getOrCreateSkill(skillRepo, "Spring");
-            Skill sql = getOrCreateSkill(skillRepo, "SQL");
-            Skill ui = getOrCreateSkill(skillRepo, "UI");
-
             // ---- Users ----
             AppUser manager = new AppUser(
                     "Manager Mia",
                     "manager@dalzana.ch",
                     role.MANAGER
             );
-            manager.addSkill(java);
-            manager.addSkill(spring);
+            manager.addSkill(Skill.JAVA);
+            manager.addSkill(Skill.SPRING_BOOT);
 
             AppUser u1 = new AppUser(
                     "Ali",
                     "ali@dalzana.ch",
                     role.USER
             );
-            u1.addSkill(java);
-            u1.addSkill(sql);
+            u1.addSkill(Skill.JAVA);
+            u1.addSkill(Skill.SQL);
 
             AppUser u2 = new AppUser(
                     "Sara",
                     "sara@dalzana.ch",
                     role.USER
             );
-            u2.addSkill(ui);
+            u2.addSkill(Skill.FIGMA);
+            u2.addSkill(Skill.UX_UI);
 
             userRepo.save(manager);
             userRepo.save(u1);
@@ -73,28 +66,22 @@ public class DalzanaApplication {
                     "Website Bugfix",
                     "Login Button funktioniert nicht"
             );
-            r1.addRequiredSkill(ui);
+            r1.addRequiredSkill(Skill.FIGMA);
+            r1.addRequiredSkill(Skill.JAVASCRIPT);
 
             Request r2 = new Request(
                     "API bauen",
                     "REST API für Requests"
             );
-            r2.addRequiredSkill(java);
-            r2.addRequiredSkill(spring);
-            r2.addRequiredSkill(sql);
+            r2.addRequiredSkill(Skill.JAVA);
+            r2.addRequiredSkill(Skill.SPRING_BOOT);
+            r2.addRequiredSkill(Skill.SQL);
 
             requestRepo.save(r1);
             requestRepo.save(r2);
 
             System.out.println("✅ Seed fertig. Users=" + userRepo.count()
-                    + " Skills=" + skillRepo.count()
                     + " Requests=" + requestRepo.count());
         };
-    }
-
-    // ---- Helper: verhindert Duplicate-Fehler ----
-    private Skill getOrCreateSkill(SkillRepository repo, String name) {
-        return repo.findByName(name)
-                .orElseGet(() -> repo.save(new Skill(name)));
     }
 }
