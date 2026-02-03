@@ -84,15 +84,6 @@ public class HelloController {
         return "home";
     }
 
-    @PostMapping("/home/team/create")
-    public String createTeam(@RequestParam String teamName, @RequestParam(required = false) Long userId, @RequestParam(required = false) String description, Model model) {
-        try {
-            Long defaultUserId = userId != null ? userId : 1L;
-            if (!userRepository.existsById(defaultUserId)) {
-                model.addAttribute("errorMessage", "❌ Kein User gefunden. Bitte registrieren Sie sich zuerst.");
-            } else {
-                teamService.createTeam(teamName, defaultUserId, defaultUserId, description != null ? description : "");
-                model.addAttribute("successMessage", "✅ Team erstellt!");
     @GetMapping("/profile")
     public String profile(HttpSession session, Model model) {
         Long userId = (Long) session.getAttribute("userId");
@@ -183,13 +174,13 @@ public class HelloController {
 
     // ✅ Team erstellen: nimmt den eingeloggten User statt defaultUserId=1
     @PostMapping("/home/team/create")
-    public String createTeam(@RequestParam String teamName, HttpSession session, Model model) {
+    public String createTeam(@RequestParam String teamName, @RequestParam Long ownerId, @RequestParam Long departmentId, @RequestParam String description, HttpSession session, Model model) {
         Long userId = (Long) session.getAttribute("userId");
         if (userId == null)
             return "redirect:/login";
 
         try {
-            teamService.createTeam(teamName, userId);
+            teamService.createTeam(teamName, ownerId, departmentId, description);
             model.addAttribute("successMessage", "✅ Team erstellt!");
         } catch (Exception e) {
             model.addAttribute("errorMessage", "❌ Fehler beim Erstellen des Teams: " + e.getMessage());
