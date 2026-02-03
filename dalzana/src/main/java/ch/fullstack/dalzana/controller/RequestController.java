@@ -5,6 +5,7 @@ import ch.fullstack.dalzana.model.Request;
 import ch.fullstack.dalzana.model.Skill;
 import ch.fullstack.dalzana.service.RequestService;
 import ch.fullstack.dalzana.service.TeamService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -26,9 +27,10 @@ public class RequestController {
 
     // Liste
     @GetMapping
-    public String list(Model model) {
+    public String list(Model model, HttpSession session) {
         model.addAttribute("requests", requestService.findAll());
         model.addAttribute("skills", Skill.values());
+        model.addAttribute("currentUserRole", session.getAttribute("userRole"));
         return "requests";
     }
 
@@ -36,7 +38,14 @@ public class RequestController {
     public String create(@RequestParam String title,
                          @RequestParam(required = false) String description,
                          @RequestParam(required = false) List<Skill> requiredSkills,
+                         HttpSession session,
                          RedirectAttributes redirectAttributes) {
+        String userRole = (String) session.getAttribute("userRole");
+        if (!"MANAGER".equals(userRole)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "❌ Nur Manager können Requests erstellen.");
+            return "redirect:/requests";
+        }
+        
         try {
             Request request = new Request(title, description);
             if (requiredSkills != null) {
@@ -58,7 +67,13 @@ public class RequestController {
         return "request-detail";
     }
     @GetMapping("/{id}/edit")
-    public String editPage(@PathVariable Long id, Model model) {
+    public String editPage(@PathVariable Long id, Model model, HttpSession session, RedirectAttributes ra) {
+        String userRole = (String) session.getAttribute("userRole");
+        if (!"MANAGER".equals(userRole)) {
+            ra.addFlashAttribute("errorMessage", "❌ Nur Manager können Requests bearbeiten.");
+            return "redirect:/requests";
+        }
+        
         model.addAttribute("request", requestService.findById(id));
         model.addAttribute("skills", Skill.values());
         return "request-edit";
@@ -69,7 +84,14 @@ public class RequestController {
                       @RequestParam String title,
                       @RequestParam(required = false) String description,
                       @RequestParam(required = false) List<Skill> requiredSkills,
+                      HttpSession session,
                       RedirectAttributes redirectAttributes) {
+        String userRole = (String) session.getAttribute("userRole");
+        if (!"MANAGER".equals(userRole)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "❌ Nur Manager können Requests bearbeiten.");
+            return "redirect:/requests";
+        }
+        
         try {
             Request request = requestService.findById(id);
             request.setTitle(title);
@@ -87,7 +109,13 @@ public class RequestController {
     }
 
     @PostMapping("/{id}/delete")
-    public String delete(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String delete(@PathVariable Long id, HttpSession session, RedirectAttributes redirectAttributes) {
+        String userRole = (String) session.getAttribute("userRole");
+        if (!"MANAGER".equals(userRole)) {
+            redirectAttributes.addFlashAttribute("errorMessage", "❌ Nur Manager können Requests löschen.");
+            return "redirect:/requests";
+        }
+        
         try {
             requestService.delete(id);
             redirectAttributes.addFlashAttribute("successMessage", "✅ Request gelöscht.");

@@ -43,7 +43,7 @@
       <h3>Teams</h3>
 
       <!-- Create Team Button -->
-      <div style="margin-bottom: 12px;">
+      <div th:if="${currentUserRole == 'MANAGER'}" style="margin-bottom: 12px;">
         <a href="/teams/create" style="text-decoration: none;">
           <button style="width: 100%; padding: 10px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
             + Neues Team erstellen
@@ -62,7 +62,7 @@
                   th:text="${t.name}">
             Team
           </button>
-          <div class="team-actions">
+          <div th:if="${currentUserRole == 'MANAGER'}" class="team-actions">
             <a th:href="@{/teams/{id}/edit(id=${t.id})}" style="text-decoration:none;">
               <button type="button">Bearbeiten</button>
             </a>
