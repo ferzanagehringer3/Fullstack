@@ -10,8 +10,8 @@
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f6f7fb; margin: 0; padding: 20px; padding-top: 84px; }
         .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
         h1 { margin-top: 16px; color: #111827; font-size: 24px; font-weight: 600; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; font-weight: 600; margin-bottom: 6px; color: #374151; font-size: 14px; }
+        .form-group { margin-bottom: 24px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; color: #374151; font-size: 14px; }
         input[type="text"], textarea, select { width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 6px; box-sizing: border-box; font-size: 14px; font-family: 'Segoe UI', Arial, sans-serif; }
         input[type="text"]:focus, textarea:focus, select:focus { outline: none; border-color: #3b82f6; }
         textarea { min-height: 100px; resize: vertical; }
@@ -30,7 +30,7 @@
 <div class="container">
     <a class="btn btn-secondary" href="/requests">← Zurück</a>
 
-    <h1>✏️ Request bearbeiten</h1>
+    <h1>Request bearbeiten</h1>
 
     <form method="POST" th:action="@{/requests/{id}/edit(id=${request.id})}">
         <div class="form-group">
@@ -44,9 +44,9 @@
         <div class="form-group">
             <label for="status">Status *</label>
             <select id="status" name="status" required style="height: auto;">
-                <option value="NEW" th:selected="${request.status.name() == 'NEW'}">🆕 NEU</option>
-                <option value="IN_PROGRESS" th:selected="${request.status.name() == 'IN_PROGRESS'}">⚙️ IN BEARBEITUNG</option>
-                <option value="DONE" th:selected="${request.status.name() == 'DONE'}">✅ ERLEDIGT</option>
+                <option value="NEW" th:selected="${request.status.name() == 'NEW'}">NEU</option>
+                <option value="IN_PROGRESS" th:selected="${request.status.name() == 'IN_PROGRESS'}">IN BEARBEITUNG</option>
+                <option value="DONE" th:selected="${request.status.name() == 'DONE'}">ERLEDIGT</option>
             </select>
         </div>
         <div class="form-group">
@@ -57,10 +57,10 @@
                         th:text="${s.displayName}"
                         th:selected="${request.requiredSkills.contains(s)}">Skill</option>
             </select>
-            <small style="color: #666; display: block; margin-top: 6px;">Halte Strg/Cmd gedrückt, um mehrere Skills auszuwählen</small>
+            <small style="color: #666; display: block; margin-top: 8px;">Halte Strg/Cmd gedrückt, um mehrere Skills auszuwählen</small>
         </div>
         <div class="buttons">
-            <button class="btn btn-primary" type="submit">💾 Speichern</button>
+            <button class="btn btn-primary" type="submit">Speichern</button>
             <a class="btn btn-secondary" th:href="@{/requests}" style="text-decoration: none;">← Zurück</a>
         </div>
     </form>

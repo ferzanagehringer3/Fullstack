@@ -152,7 +152,7 @@
             font-size: 18px;
             font-weight: 600;
             color: #111827;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             line-height: 1.4;
             flex-grow: 1;
         }
@@ -160,7 +160,7 @@
         .request-description {
             font-size: 14px;
             color: #6b7280;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
             line-height: 1.5;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -169,7 +169,7 @@
         }
 
         .skills-section {
-            margin-bottom: 12px;
+            margin-bottom: 16px;
         }
 
         .skill-tag {
@@ -186,7 +186,7 @@
 
         .teams-section {
             margin-top: auto;
-            padding-top: 12px;
+            padding-top: 16px;
             border-top: 1px solid #e5e7eb;
         }
 
@@ -194,7 +194,7 @@
             font-size: 12px;
             font-weight: 600;
             color: #374151;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             display: block;
         }
 
@@ -217,22 +217,22 @@
 
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 80px 20px;
             color: #6b7280;
         }
 
         .empty-state-icon {
             font-size: 48px;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
         .empty-state-text {
             font-size: 16px;
-            margin-bottom: 24px;
+            margin-bottom: 32px;
         }
 
         .back-link {
-            margin-bottom: 24px;
+            margin-bottom: 28px;
             display: inline-block;
         }
 
@@ -266,7 +266,7 @@
     </div>
 
     <div class="page-header">
-        <h1>📌 Anfragen</h1>
+        <h1>Anfragen</h1>
         <div th:if="${currentUserRole == 'MANAGER'}">
             <a th:href="@{/requests/create}" style="text-decoration: none;">
                 <button class="btn btn-primary btn-large">+ Neue Anfrage</button>
@@ -278,7 +278,6 @@
     <div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
 
     <div th:if="${#lists.isEmpty(requests)}" class="empty-state">
-        <div class="empty-state-icon">📭</div>
         <div class="empty-state-text">Noch keine Anfragen vorhanden</div>
     </div>
 
@@ -287,7 +286,7 @@
             <a th:href="@{/requests/{id}(id=${r.id})}">
                 <span class="request-status" 
                       th:class="${'request-status ' + (r.status.name() == 'NEW' ? 'status-new' : r.status.name() == 'IN_PROGRESS' ? 'status-in-progress' : 'status-done')}"
-                      th:text="${r.status.name() == 'NEW' ? '🆕 NEU' : r.status.name() == 'IN_PROGRESS' ? '⚙️ IN BEARBEITUNG' : '✅ ERLEDIGT'}"></span>
+                      th:text="${r.status.name() == 'NEW' ? 'NEU' : r.status.name() == 'IN_PROGRESS' ? 'IN BEARBEITUNG' : 'ERLEDIGT'}"></span>
 
                 <div class="request-title" th:text="${r.title}">Request Titel</div>
             </a>
@@ -299,7 +298,7 @@
             </div>
 
             <div class="teams-section" th:if="${!#lists.isEmpty(requestTeamsMap[r.id])}">
-                <span class="teams-label">👥 Teams</span>
+                <span class="teams-label">Teams</span>
                 <div>
                     <a th:each="team : ${requestTeamsMap[r.id]}" 
                        th:href="@{/teams/{id}(id=${team.id})}" 

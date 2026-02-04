@@ -208,7 +208,7 @@
 
         await res.json();
 
-        // ✅ Nach Registrierung NICHT direkt /home (weil du dann nicht eingeloggt bist)
+        // Nach Registrierung NICHT direkt /home (weil du dann nicht eingeloggt bist)
         // -> Wechsel zum Login Tab und Email vorausfuellen
         showLogin();
         document.getElementById("loginEmail").value = email;

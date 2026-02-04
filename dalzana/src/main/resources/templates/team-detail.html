@@ -10,13 +10,13 @@
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f6f7fb; margin: 0; padding: 20px; padding-top: 84px; }
         .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
         h1 { margin-top: 16px; color: #111827; font-size: 24px; font-weight: 600; }
-        p { color: #374151; font-size: 16px; font-weight: 600; margin-top: 24px; margin-bottom: 12px; }
+        p { color: #374151; font-size: 16px; font-weight: 600; margin-top: 28px; margin-bottom: 14px; }
         .members { margin-top: 16px; border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; }
-        .member { padding: 14px; border-bottom: 1px solid #e5e7eb; background: #fff; }
+        .member { padding: 16px; border-bottom: 1px solid #e5e7eb; background: #fff; }
         .member:last-child { border-bottom: none; }
         .member-name { font-weight: 600; color: #111827; font-size: 15px; }
-        .member-email { font-size: 13px; color: #6b7280; margin-top: 4px; }
-        .skills { margin-top: 8px; }
+        .member-email { font-size: 13px; color: #6b7280; margin-top: 6px; }
+        .skills { margin-top: 10px; }
         .skill-tag { display: inline-block; background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 12px; margin-right: 6px; font-size: 12px; font-weight: 500; }
         .actions { display: flex; gap: 12px; margin-top: 24px; }
         .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; text-decoration: none; display: inline-block; font-size: 14px; transition: all 0.2s; }
@@ -39,8 +39,8 @@
     </h1>
 
     <!-- Request Info Sektion -->
-    <div th:if="${team.request}" style="background: #f3f4f6; padding: 16px; border-radius: 6px; margin-top: 20px; margin-bottom: 24px;">
-        <p style="margin: 0 0 8px 0; font-weight: 600; color: #374151;">📋 Zugehöriger Request</p>
+    <div th:if="${team.request}" style="background: #f3f4f6; padding: 20px; border-radius: 6px; margin-top: 24px; margin-bottom: 28px;">
+        <p style="margin: 0 0 8px 0; font-weight: 600; color: #374151;">Zugehöriger Request</p>
         <a th:href="@{/requests/{id}(id=${team.request.id})}" 
            style="color: #3b82f6; text-decoration: none; font-weight: 500; font-size: 15px;"
            th:text="${team.request.title}">
@@ -55,41 +55,41 @@
             <span style="font-weight: 600; color: #374151; font-size: 13px; margin-right: 8px;">Status:</span>
             <span th:if="${team.request.status.name() == 'NEW'}" 
                   style="display: inline-block; background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">
-                🆕 NEU
+                NEU
             </span>
             <span th:if="${team.request.status.name() == 'IN_PROGRESS'}" 
                   style="display: inline-block; background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">
-                ⚙️ IN BEARBEITUNG
+                IN BEARBEITUNG
             </span>
             <span th:if="${team.request.status.name() == 'DONE'}" 
                   style="display: inline-block; background: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">
-                ✅ ERLEDIGT
+                ERLEDIGT
             </span>
         </div>
         
         <!-- Status ändern -->
         <form th:action="@{/teams/{teamId}/request/status(teamId=${team.id})}" method="post" style="margin-top: 12px;">
             <select name="status" style="padding: 6px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; margin-right: 8px;">
-                <option value="NEW" th:selected="${team.request.status.name() == 'NEW'}">🆕 NEU</option>
-                <option value="IN_PROGRESS" th:selected="${team.request.status.name() == 'IN_PROGRESS'}">⚙️ IN BEARBEITUNG</option>
-                <option value="DONE" th:selected="${team.request.status.name() == 'DONE'}">✅ ERLEDIGT</option>
+                <option value="NEW" th:selected="${team.request.status.name() == 'NEW'}">NEU</option>
+                <option value="IN_PROGRESS" th:selected="${team.request.status.name() == 'IN_PROGRESS'}">IN BEARBEITUNG</option>
+                <option value="DONE" th:selected="${team.request.status.name() == 'DONE'}">ERLEDIGT</option>
             </select>
             <button type="submit" style="padding: 6px 14px; background: #3b82f6; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">Status ändern</button>
         </form>
     </div>
 
-    <div th:if="${currentUserId != null && !isMember}" style="margin-top: 16px;">
+    <div th:if="${currentUserId != null && !isMember}" style="margin-top: 20px;">
         <form th:if="${!joinRequestPending}" th:action="@{/teams/{id}/join-request(id=${team.id})}" method="post">
-            <button type="submit" class="btn btn-primary">🤝 Team beitreten anfragen</button>
+            <button type="submit" class="btn btn-primary">Team beitreten anfragen</button>
         </form>
         <div th:if="${joinRequestPending}" style="color: #92400e; background: #fef3c7; padding: 10px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;">
-            ⏳ Deine Beitrittsanfrage ist ausstehend.
+            Deine Beitrittsanfrage ist ausstehend.
         </div>
         <div th:if="${joinRequestStatus != null && joinRequestStatus.name() == 'REJECTED'}" style="margin-top: 10px; color: #991b1b; background: #fee2e2; padding: 10px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;">
-            ❌ Deine Beitrittsanfrage wurde abgelehnt.
+            Deine Beitrittsanfrage wurde abgelehnt.
         </div>
         <div th:if="${joinRequestStatus != null && joinRequestStatus.name() == 'APPROVED'}" style="margin-top: 10px; color: #065f46; background: #d1fae5; padding: 10px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;">
-            ✅ Deine Beitrittsanfrage wurde angenommen.
+            Deine Beitrittsanfrage wurde angenommen.
         </div>
     </div>
 
@@ -106,10 +106,10 @@
         </div>
     </div>
 
-    <div class="actions" th:if="${currentUserRole == 'MANAGER'}">
-        <a class="btn btn-primary" th:href="@{/teams/{id}/edit(id=${team.id})}">✏️ Team bearbeiten</a>
+    <div class="actions" style="display: flex; gap: 12px; margin-top: 32px;" th:if="${currentUserRole == 'MANAGER'}">
+        <a class="btn btn-primary" th:href="@{/teams/{id}/edit(id=${team.id})}">Team bearbeiten</a>
         <form th:action="@{/teams/{id}/delete(id=${team.id})}" method="post" onsubmit="return confirm('Team wirklich löschen?');" style="display: inline;">
-            <button type="submit" class="btn" style="background: #dc3545; color: #fff;">🗑️ Team löschen</button>
+            <button type="submit" class="btn" style="background: #dc3545; color: #fff;">Team löschen</button>
         </form>
     </div>
 </div>
