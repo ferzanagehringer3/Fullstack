@@ -37,8 +37,6 @@ public class HelloController {
     private final EmailService emailService;
     private final Argon2PasswordEncoder encoder;
 
-    public HelloController(TeamService teamService, AppUserRepository userRepository,
-            MessageRepository messageRepository, TeamRepository teamRepository) {
     public HelloController(TeamService teamService, AppUserRepository userRepository, 
                           MessageRepository messageRepository, TeamRepository teamRepository,
                           EmailService emailService) {
@@ -261,17 +259,6 @@ public class HelloController {
 
         try {
             Team team = teamRepository.findById(teamId).orElseThrow();
-                      return "{\"success\": true}";
-        } catch (Exception e) {
-            return "{\"error\": \"" + e.getMessage() + "\"}";
-        }
-    }
-
-            AppUser user = userRepository.findById(userId).orElseThrow();
-
-            Message message = new Message(team, user, content);
-            messageRepository.save(message);
-
             AppUser sender = userRepository.findById(userId).orElseThrow();
             
             Message message = new Message(team, sender, content);
@@ -289,6 +276,12 @@ public class HelloController {
                     );
                 }
             }
+            
+            return "{\"success\": true}";
+        } catch (Exception e) {
+            return "{\"error\": \"" + e.getMessage() + "\"}";
+        }
+    }
             
 
     @GetMapping("/home/messages/{teamId}")
