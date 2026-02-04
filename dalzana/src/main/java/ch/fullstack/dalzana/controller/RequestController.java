@@ -4,10 +4,12 @@ package ch.fullstack.dalzana.controller;
 import ch.fullstack.dalzana.model.Request;
 import ch.fullstack.dalzana.model.RequestStatus;
 import ch.fullstack.dalzana.model.Skill;
+import ch.fullstack.dalzana.model.Team;
 import ch.fullstack.dalzana.repo.TeamRepository;
 import ch.fullstack.dalzana.service.RequestService;
 import ch.fullstack.dalzana.service.TeamService;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -47,6 +49,41 @@ public class RequestController {
         model.addAttribute("skills", Skill.values());
         model.addAttribute("currentUserRole", session.getAttribute("userRole"));
         return "requests";
+    }
+
+    @GetMapping("/cockpit")
+    public String cockpit(Model model, HttpSession session) {
+        String userRole = (String) session.getAttribute("userRole");
+        Long userId = (Long) session.getAttribute("userId");
+
+        List<Request> requests;
+        
+        // Manager sehen alle Requests
+        if ("MANAGER".equals(userRole)) {
+            requests = requestService.findAll();
+        } else {
+            // Normale User sehen nur Requests, wo sie in einem Team sind
+            if (userId == null) {
+                requests = List.of();
+            } else {
+                var userTeams = teamService.findByUserId(userId);
+                requests = userTeams.stream()
+                        .map(Team::getRequest)
+                        .distinct()
+                        .toList();
+            }
+        }
+
+        Map<Long, List<?>> requestTeamsMap = new HashMap<>();
+        for (var request : requests) {
+            requestTeamsMap.put(request.getId(), teamRepository.findByRequestId(request.getId()));
+        }
+
+        model.addAttribute("requests", requests);
+        model.addAttribute("requestTeamsMap", requestTeamsMap);
+        model.addAttribute("currentUserRole", userRole);
+        model.addAttribute("requestStatuses", RequestStatus.values());
+        return "cockpit";
     }
 
     @GetMapping("/create")
@@ -164,5 +201,25 @@ public String suggestTeam(@PathVariable Long id) {
     var team = teamService.createSuggestedTeam(id, managerId, 3);
     return "redirect:/teams/" + team.getId();
 }
+
+    @PostMapping("/{id}/status")
+    @ResponseBody
+    public ResponseEntity<String> updateStatus(@PathVariable Long id,
+                                               @RequestParam RequestStatus status,
+                                               HttpSession session) {
+        String userRole = (String) session.getAttribute("userRole");
+        if (!"MANAGER".equals(userRole)) {
+            return ResponseEntity.status(403).body("Nur Manager dürfen den Status ändern.");
+        }
+
+        try {
+            Request request = requestService.findById(id);
+            request.setStatus(status);
+            requestService.save(request);
+            return ResponseEntity.ok("OK");
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Fehler: " + e.getMessage());
+        }
+    }
 
 }

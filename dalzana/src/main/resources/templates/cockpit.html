@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cockpit</title>
+    <link rel="stylesheet" th:href="@{/css/layout.css}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6fb; margin: 0; padding-top: 84px; color: #0f172a; }
+        .container { max-width: none; margin: 0; padding: 20px 24px 28px; }
+        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        h1 { margin: 0; color: #0f172a; font-size: 24px; font-weight: 600; }
+
+        .layout { position: relative; }
+        .board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; height: calc(100vh - 140px); transition: width 0.25s ease, margin-right 0.25s ease; }
+        .layout.detail-open .board { margin-right: 380px; width: calc(100% - 380px); }
+        .column { background: #fff; border-radius: 12px; box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08); display: flex; flex-direction: column; border: 1px solid #eef2f7; overflow: hidden; }
+        .column-header { padding: 14px 16px; border-bottom: 1px solid #eef2f7; font-weight: 600; color: #0f172a; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; }
+        .column-body { padding: 12px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; height: 100%; }
+
+        .card { background: #ffffff; border: 1px solid #e6ebf2; border-radius: 10px; padding: 12px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04); }
+        .card:hover { border-color: #cbd5e1; box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08); transform: translateY(-1px); }
+        .card-title { font-weight: 600; color: #0f172a; font-size: 14px; margin-bottom: 6px; }
+        .card-status { display: inline-flex; align-items: center; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; margin-bottom: 8px; letter-spacing: 0.03em; }
+        .status-NEW { background: #e0f2fe; color: #075985; }
+        .status-IN_PROGRESS { background: #fef9c3; color: #92400e; }
+        .status-DONE { background: #dcfce7; color: #166534; }
+        .team-tag { display: inline-block; background: #eef2ff; color: #4338ca; padding: 2px 8px; border-radius: 999px; margin-right: 4px; margin-bottom: 4px; font-size: 11px; font-weight: 600; }
+
+        .overlay { position: fixed; top: 84px; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0); z-index: 110; transition: background 0.25s ease; pointer-events: none; }
+        .layout.detail-open .overlay { background: rgba(15, 23, 42, 0.15); pointer-events: auto; }
+
+        .detail-panel { background: #fff; border-radius: 12px 0 0 12px; box-shadow: -8px 0 24px rgba(15, 23, 42, 0.12); padding: 20px; position: fixed; top: 84px; right: 0; width: 340px; display: block; border: 1px solid #eef2f7; height: calc(100vh - 84px); overflow-y: auto; z-index: 120; transform: translateX(100%); transition: transform 0.25s ease; }
+        .detail-panel.open { transform: translateX(0); }
+        .detail-title { font-weight: 700; color: #0f172a; font-size: 16px; margin-bottom: 16px; line-height: 1.4; }
+        .detail-section { margin-top: 16px; }
+        .detail-label { font-size: 10px; color: #64748b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; }
+        .detail-text { font-size: 13px; color: #334155; line-height: 1.5; }
+        .detail-text a { color: #3b82f6; text-decoration: none; font-size: 13px; }
+        .detail-text a:hover { text-decoration: underline; }
+        .close-btn { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 6px; padding: 5px 12px; cursor: pointer; font-size: 13px; color: #0f172a; font-weight: 500; transition: all 0.2s; }
+        .close-btn:hover { background: #e2e8f0; }
+
+        .status-select { width: 100%; padding: 8px 10px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 13px; background: #fff; }
+        .status-note { font-size: 11px; color: #64748b; margin-top: 6px; }
+
+        @media (max-width: 1200px) {
+            .layout.detail-open .board { margin-right: 0; width: 100%; }
+            .detail-panel { position: fixed; width: 100%; border-radius: 0; }
+            .board { height: auto; min-height: 60vh; }
+        }
+    </style>
+</head>
+<body>
+<div th:insert="~{fragments/header}"></div>
+<div class="container">
+    <div class="header-row">
+        <h1>Cockpit</h1>
+    </div>
+
+    <div class="layout" id="layout">
+        <div class="overlay" id="overlay"></div>
+        <div class="board">
+            <div class="column" data-status="NEW">
+                <div class="column-header">
+                    <span>Neu</span>
+                    <span class="count" id="count-NEW">0</span>
+                </div>
+                <div class="column-body" id="col-NEW">
+                    <div th:each="r : ${requests}" th:if="${r.status.name() == 'NEW'}"
+                         class="card"
+                         th:attr="data-id=${r.id},data-title=${r.title},data-description=${r.description},data-status=${r.status.name()}">
+                        <div class="card-status status-NEW">NEW</div>
+                        <div class="card-title" th:text="${r.title}">Request</div>
+                        <div>
+                            <span th:each="team : ${requestTeamsMap[r.id]}" class="team-tag" th:text="${team.name}">Team</span>
+                        </div>
+                        <div class="card-meta" style="display:none;">
+                            <div class="meta-teams">
+                                <div th:if="${#lists.isEmpty(requestTeamsMap[r.id])}" class="detail-text">Keine Teams</div>
+                                <div th:if="${!#lists.isEmpty(requestTeamsMap[r.id])}">
+                                    <div th:each="team : ${requestTeamsMap[r.id]}">
+                                        <a th:href="@{/teams/{id}(id=${team.id})}" th:text="${team.name}" style="color:#3b82f6; text-decoration:none; font-size:13px;"></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="meta-skills">
+                                <div th:if="${#sets.isEmpty(r.requiredSkills)}" class="detail-text">Keine Skills</div>
+                                <div th:if="${!#sets.isEmpty(r.requiredSkills)}">
+                                    <span th:each="skill : ${r.requiredSkills}" class="team-tag" th:text="${skill}">Skill</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="column" data-status="IN_PROGRESS">
+                <div class="column-header">
+                    <span>In Bearbeitung</span>
+                    <span class="count" id="count-IN_PROGRESS">0</span>
+                </div>
+                <div class="column-body" id="col-IN_PROGRESS">
+                    <div th:each="r : ${requests}" th:if="${r.status.name() == 'IN_PROGRESS'}"
+                         class="card"
+                         th:attr="data-id=${r.id},data-title=${r.title},data-description=${r.description},data-status=${r.status.name()}">
+                        <div class="card-status status-IN_PROGRESS">IN_PROGRESS</div>
+                        <div class="card-title" th:text="${r.title}">Request</div>
+                        <div>
+                            <span th:each="team : ${requestTeamsMap[r.id]}" class="team-tag" th:text="${team.name}">Team</span>
+                        </div>
+                        <div class="card-meta" style="display:none;">
+                            <div class="meta-teams">
+                                <div th:if="${#lists.isEmpty(requestTeamsMap[r.id])}" class="detail-text">Keine Teams</div>
+                                <div th:if="${!#lists.isEmpty(requestTeamsMap[r.id])}">
+                                    <div th:each="team : ${requestTeamsMap[r.id]}">
+                                        <a th:href="@{/teams/{id}(id=${team.id})}" th:text="${team.name}" style="color:#3b82f6; text-decoration:none; font-size:13px;"></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="meta-skills">
+                                <div th:if="${#sets.isEmpty(r.requiredSkills)}" class="detail-text">Keine Skills</div>
+                                <div th:if="${!#sets.isEmpty(r.requiredSkills)}">
+                                    <span th:each="skill : ${r.requiredSkills}" class="team-tag" th:text="${skill}">Skill</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="column" data-status="DONE">
+                <div class="column-header">
+                    <span>Erledigt</span>
+                    <span class="count" id="count-DONE">0</span>
+                </div>
+                <div class="column-body" id="col-DONE">
+                    <div th:each="r : ${requests}" th:if="${r.status.name() == 'DONE'}"
+                         class="card"
+                         th:attr="data-id=${r.id},data-title=${r.title},data-description=${r.description},data-status=${r.status.name()}">
+                        <div class="card-status status-DONE">DONE</div>
+                        <div class="card-title" th:text="${r.title}">Request</div>
+                        <div>
+                            <span th:each="team : ${requestTeamsMap[r.id]}" class="team-tag" th:text="${team.name}">Team</span>
+                        </div>
+                        <div class="card-meta" style="display:none;">
+                            <div class="meta-teams">
+                                <div th:if="${#lists.isEmpty(requestTeamsMap[r.id])}" class="detail-text">Keine Teams</div>
+                                <div th:if="${!#lists.isEmpty(requestTeamsMap[r.id])}">
+                                    <div th:each="team : ${requestTeamsMap[r.id]}">
+                                        <a th:href="@{/teams/{id}(id=${team.id})}" th:text="${team.name}" style="color:#3b82f6; text-decoration:none; font-size:13px;"></a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="meta-skills">
+                                <div th:if="${#sets.isEmpty(r.requiredSkills)}" class="detail-text">Keine Skills</div>
+                                <div th:if="${!#sets.isEmpty(r.requiredSkills)}">
+                                    <span th:each="skill : ${r.requiredSkills}" class="team-tag" th:text="${skill}">Skill</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-panel" id="detail-panel">
+            <div style="display:flex; justify-content: space-between; align-items:center;">
+                <div class="detail-title" id="detail-title">Request</div>
+                <button class="close-btn" id="detail-close">Schliessen</button>
+            </div>
+            <div class="detail-section">
+                <div class="detail-label">Beschreibung</div>
+                <div class="detail-text" id="detail-description">-</div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-label">Teams</div>
+                <div id="detail-teams"></div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-label">Skills</div>
+                <div id="detail-skills"></div>
+            </div>
+            <div class="detail-section" th:if="${currentUserRole == 'MANAGER'}">
+                <div class="detail-label">Status ändern</div>
+                <select class="status-select" id="detail-status">
+                    <option th:each="s : ${requestStatuses}" th:value="${s.name()}" th:text="${s.name()}"></option>
+                </select>
+                <div class="status-note" id="status-note">Wird direkt übernommen.</div>
+            </div>
+            <div class="detail-section">
+                <a id="detail-link" href="#" style="color:#3b82f6; text-decoration:none; font-size:13px;">Zum Request</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const detailPanel = document.getElementById('detail-panel');
+    const layout = document.getElementById('layout');
+    const overlay = document.getElementById('overlay');
+    const detailTitle = document.getElementById('detail-title');
+    const detailDescription = document.getElementById('detail-description');
+    const detailTeams = document.getElementById('detail-teams');
+    const detailSkills = document.getElementById('detail-skills');
+    const detailLink = document.getElementById('detail-link');
+    const detailStatus = document.getElementById('detail-status');
+    const detailClose = document.getElementById('detail-close');
+
+    let activeCard = null;
+
+    function updateCounts() {
+        ['NEW', 'IN_PROGRESS', 'DONE'].forEach(status => {
+            const col = document.getElementById('col-' + status);
+            const count = col.querySelectorAll('.card').length;
+            document.getElementById('count-' + status).textContent = count;
+        });
+    }
+
+    function openDetail(card) {
+        activeCard = card;
+        const title = card.dataset.title || 'Request';
+        const description = card.dataset.description || 'Keine Beschreibung.';
+        const status = card.dataset.status;
+
+        detailTitle.textContent = title;
+        detailDescription.textContent = description;
+        detailLink.href = '/requests/' + card.dataset.id;
+
+        const meta = card.querySelector('.card-meta');
+        const teamsHtml = meta ? meta.querySelector('.meta-teams').innerHTML : '';
+        const skillsHtml = meta ? meta.querySelector('.meta-skills').innerHTML : '';
+        detailTeams.innerHTML = teamsHtml || '<div class="detail-text">Keine Teams</div>';
+        detailSkills.innerHTML = skillsHtml || '<div class="detail-text">Keine Skills</div>';
+
+        if (detailStatus) {
+            detailStatus.value = status;
+        }
+
+        detailPanel.classList.add('open');
+        layout.classList.add('detail-open');
+    }
+
+    function moveCard(card, newStatus) {
+        const target = document.getElementById('col-' + newStatus);
+        if (!target) return;
+        card.dataset.status = newStatus;
+        const badge = card.querySelector('.card-status');
+        badge.textContent = newStatus;
+        badge.className = 'card-status status-' + newStatus;
+        target.prepend(card);
+        updateCounts();
+    }
+
+    document.querySelectorAll('.card').forEach(card => {
+        card.addEventListener('click', () => openDetail(card));
+    });
+
+    if (detailStatus) {
+        detailStatus.addEventListener('change', async (e) => {
+            if (!activeCard) return;
+            const newStatus = e.target.value;
+            const id = activeCard.dataset.id;
+
+            const resp = await fetch(`/requests/${id}/status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'status=' + encodeURIComponent(newStatus)
+            });
+
+            if (resp.ok) {
+                moveCard(activeCard, newStatus);
+            } else {
+                const msg = await resp.text();
+                alert(msg || 'Status konnte nicht geändert werden.');
+                detailStatus.value = activeCard.dataset.status;
+            }
+        });
+    }
+
+    detailClose.addEventListener('click', () => {
+        detailPanel.classList.remove('open');
+        layout.classList.remove('detail-open');
+        activeCard = null;
+    });
+
+    overlay.addEventListener('click', () => {
+        detailPanel.classList.remove('open');
+        layout.classList.remove('detail-open');
+        activeCard = null;
+    });
+
+    updateCounts();
+</script>
+</body>
+</html>
