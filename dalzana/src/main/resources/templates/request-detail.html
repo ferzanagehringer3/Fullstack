@@ -10,8 +10,8 @@
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f6f7fb; margin: 0; padding: 20px; padding-top: 84px; }
         .container { max-width: 900px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
         h1 { margin-top: 16px; color: #111827; font-size: 24px; font-weight: 600; }
-        h4 { color: #374151; font-size: 16px; margin-top: 24px; margin-bottom: 12px; }
-        p { color: #4b5563; font-size: 14px; line-height: 1.6; }
+        h4 { color: #374151; font-size: 16px; margin-top: 28px; margin-bottom: 14px; }
+        p { color: #4b5563; font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
         .skill-tag { display: inline-block; background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 12px; margin-right: 6px; font-size: 12px; font-weight: 500; }
         .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; text-decoration: none; display: inline-block; font-size: 14px; transition: all 0.2s; }
         .btn-primary { background: #3b82f6; color: #fff; }
@@ -28,18 +28,18 @@
     <h1 th:text="${request.title}">Request</h1>
     
     <!-- Status Badge -->
-    <div style="margin-top: 16px; margin-bottom: 16px;">
+    <div style="margin-top: 20px; margin-bottom: 24px;">
         <span th:if="${request.status.name() == 'NEW'}" 
               style="display: inline-block; background: #dbeafe; color: #1e40af; padding: 6px 14px; border-radius: 16px; font-size: 13px; font-weight: 600;">
-            🆕 NEU
+            NEU
         </span>
         <span th:if="${request.status.name() == 'IN_PROGRESS'}" 
               style="display: inline-block; background: #fef3c7; color: #92400e; padding: 6px 14px; border-radius: 16px; font-size: 13px; font-weight: 600;">
-            ⚙️ IN BEARBEITUNG
+            IN BEARBEITUNG
         </span>
         <span th:if="${request.status.name() == 'DONE'}" 
               style="display: inline-block; background: #d1fae5; color: #065f46; padding: 6px 14px; border-radius: 16px; font-size: 13px; font-weight: 600;">
-            ✅ ERLEDIGT
+            ERLEDIGT
         </span>
     </div>
     
@@ -54,25 +54,25 @@
 
     <div th:if="${!#lists.isEmpty(requestTeams)}">
         <h4>Zugeordnete Teams</h4>
-        <div style="border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden;">
-            <div th:each="team : ${requestTeams}" style="padding: 12px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+        <div style="border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden; margin-top: 12px;">
+            <div th:each="team : ${requestTeams}" style="padding: 16px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
                 <a th:href="@{/teams/{id}(id=${team.id})}" th:text="${team.name}" style="color: #3b82f6; text-decoration: none; font-weight: 500;"></a>
-                <span th:if="${team.status.name() == 'PROPOSED'}" style="background: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: 500;">📋 VORGESCHLAGEN</span>
-                <span th:if="${team.status.name() == 'CONFIRMED'}" style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: 500;">✓ BESTÄTIGT</span>
-                <span th:if="${team.status.name() == 'COMPLETED'}" style="background: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: 500;">✅ ABGESCHLOSSEN</span>
+                <span th:if="${team.status.name() == 'PROPOSED'}" style="background: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: 500;">VORGESCHLAGEN</span>
+                <span th:if="${team.status.name() == 'CONFIRMED'}" style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: 500;">BESTÄTIGT</span>
+                <span th:if="${team.status.name() == 'COMPLETED'}" style="background: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: 500;">ABGESCHLOSSEN</span>
             </div>
         </div>
     </div>
 
-    <div th:if="${#lists.isEmpty(requestTeams)}" style="margin-top:20px;">
+    <div th:if="${#lists.isEmpty(requestTeams)}" style="margin-top: 24px;">
         <a class="btn btn-primary" th:href="@{/teams/create(requestId=${request.id})}">Team erstellen</a>
     </div>
 
     <!-- Manager Actions -->
-    <div th:if="${currentUserRole == 'MANAGER'}" style="margin-top: 24px; display: flex; gap: 12px;">
-        <a class="btn btn-primary" th:href="@{/requests/{id}/edit(id=${request.id})}" style="text-decoration: none;">✏️ Bearbeiten</a>
+    <div th:if="${currentUserRole == 'MANAGER'}" style="margin-top: 32px; display: flex; gap: 12px;">
+        <a class="btn btn-primary" th:href="@{/requests/{id}/edit(id=${request.id})}" style="text-decoration: none;">Bearbeiten</a>
         <form method="POST" th:action="@{/requests/{id}/delete(id=${request.id})}" style="margin: 0;" onsubmit="return confirm('Request wirklich löschen?');">
-            <button class="btn" type="submit" style="background: #dc3545; color: #fff;">🗑️ Löschen</button>
+            <button class="btn" type="submit" style="background: #dc3545; color: #fff;">Löschen</button>
         </form>
     </div>
 </div>

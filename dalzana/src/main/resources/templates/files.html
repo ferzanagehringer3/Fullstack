@@ -30,7 +30,7 @@
         .message {
             padding: 12px 16px;
             border-radius: 6px;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             font-size: 14px;
         }
 
@@ -49,7 +49,7 @@
         .content-wrapper {
             display: grid;
             grid-template-columns: 1fr 350px;
-            gap: 20px;
+            gap: 24px;
         }
 
         .files-section {
@@ -71,7 +71,7 @@
             font-size: 14px;
             font-weight: 600;
             color: #111827;
-            margin: 0 0 16px 0;
+            margin: 0 0 20px 0;
         }
 
         .file-input-wrapper {
@@ -115,12 +115,12 @@
         }
 
         .selected-files {
-            margin-top: 16px;
+            margin-top: 20px;
             max-height: 200px;
             overflow-y: auto;
             border: 1px solid #e5e7eb;
             border-radius: 6px;
-            padding: 8px;
+            padding: 10px;
             display: none;
         }
 
@@ -132,10 +132,10 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px;
+            padding: 10px;
             background: #f9fafb;
             border-radius: 4px;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
             font-size: 12px;
         }
 
@@ -167,7 +167,7 @@
             font-weight: 500;
             font-size: 14px;
             transition: all 0.2s;
-            margin-top: 16px;
+            margin-top: 20px;
         }
 
         .submit-btn:hover:not(:disabled) {
@@ -188,7 +188,7 @@
             display: grid;
             grid-template-columns: 1fr 120px 100px;
             gap: 12px;
-            padding: 12px 16px;
+            padding: 14px 16px;
             background: #f9fafb;
             border-bottom: 1px solid #e5e7eb;
             font-size: 12px;
@@ -358,7 +358,7 @@
                                       th:action="@{/teams/{teamId}/files/{fileId}/delete(teamId=${teamId},fileId=${f.id})}"
                                       style="margin: 0; display: inline;">
                                     <button type="submit" class="file-btn file-btn-danger" onclick="return confirm('Datei wirklich löschen?');">
-                                        🗑️
+                                        Löschen
                                     </button>
                                 </form>
                             </div>
@@ -380,14 +380,14 @@
                                 accept="*/*"
                             >
                             <label for="files" class="file-input-label" id="dropZone">
-                                <span id="dropText">📁 Dateien hier ablegen oder klicken</span>
+                                <span id="dropText">Dateien hier ablegen oder klicken</span>
                             </label>
                         </div>
 
                         <div class="selected-files" id="selectedFiles"></div>
 
                         <button type="submit" class="submit-btn" id="submitBtn" disabled>
-                            ✓ Hochladen
+                            Hochladen
                         </button>
                     </form>
                 </div>
