@@ -9,7 +9,9 @@ import ch.fullstack.dalzana.model.Skill;
 import ch.fullstack.dalzana.model.role;
 import ch.fullstack.dalzana.repo.AppUserRepository;
 import ch.fullstack.dalzana.repo.MessageRepository;
+import ch.fullstack.dalzana.repo.MessageReadStatusRepository;
 import ch.fullstack.dalzana.model.Message;
+import ch.fullstack.dalzana.model.MessageReadStatus;
 import ch.fullstack.dalzana.model.Team;
 import ch.fullstack.dalzana.repo.TeamRepository;
 
@@ -35,17 +37,20 @@ public class HelloController {
     private final RequestService requestService;
     private final AppUserRepository userRepository;
     private final MessageRepository messageRepository;
+    private final MessageReadStatusRepository readStatusRepository;
     private final TeamRepository teamRepository;
     private final EmailService emailService;
     private final Argon2PasswordEncoder encoder;
 
     public HelloController(TeamService teamService, RequestService requestService, AppUserRepository userRepository, 
-                          MessageRepository messageRepository, TeamRepository teamRepository,
+                          MessageRepository messageRepository, MessageReadStatusRepository readStatusRepository,
+                          TeamRepository teamRepository,
                           EmailService emailService) {
         this.teamService = teamService;
         this.requestService = requestService;
         this.userRepository = userRepository;
         this.messageRepository = messageRepository;
+        this.readStatusRepository = readStatusRepository;
         this.teamRepository = teamRepository;
         this.emailService = emailService;
         this.encoder = Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
@@ -296,16 +301,49 @@ public class HelloController {
             return java.util.Collections.emptyList();
         }
 
-        return messageRepository.findByTeamIdOrderByCreatedAtAsc(teamId).stream()
-                .map(m -> new MessageDto(
-                        m.getId(),
-                        m.getSender().getName(),
-                        m.getContent(),
-                        m.getCreatedAt().toString()))
+        AppUser currentUser = userRepository.findById(userId).orElseThrow();
+        Team team = teamRepository.findById(teamId).orElseThrow();
+        
+        // Mark all unread messages as read when user opens the chat
+        java.util.List<Message> messages = messageRepository.findByTeamIdOrderByCreatedAtAsc(teamId);
+        for (Message msg : messages) {
+            // Don't mark own messages as read
+            if (!msg.getSender().getId().equals(userId)) {
+                if (!readStatusRepository.existsByMessageIdAndUserId(msg.getId(), userId)) {
+                    readStatusRepository.save(new MessageReadStatus(msg, currentUser));
+                }
+            }
+        }
+        
+        // Get total member count (excluding current user for read count)
+        int totalMembers = team.getMembers().size();
+
+        return messages.stream()
+                .map(m -> {
+                    // Get read status for this message
+                    java.util.List<MessageReadStatus> readStatuses = readStatusRepository.findByMessageId(m.getId());
+                    int readCount = readStatuses.size();
+                    
+                    // Build list of users who read this message
+                    String readByUsers = readStatuses.stream()
+                            .map(rs -> rs.getUser().getName())
+                            .collect(java.util.stream.Collectors.joining(", "));
+                    
+                    return new MessageDto(
+                            m.getId(),
+                            m.getSender().getName(),
+                            m.getSender().getId().equals(userId),
+                            m.getContent(),
+                            m.getCreatedAt().toString(),
+                            readCount,
+                            totalMembers - 1, // Don't count the sender
+                            readByUsers);
+                })
                 .toList();
     }
 
-    public record MessageDto(Long id, String senderName, String content, String createdAt) {
+    public record MessageDto(Long id, String senderName, boolean isSender, String content, 
+                            String createdAt, int readCount, int totalRecipients, String readByUsers) {
     }
 
     @PostMapping("/home/teams/{teamId}/mark-as-read")
@@ -316,19 +354,7 @@ public class HelloController {
             return "{\"error\": \"Not logged in\"}";
         }
 
-        // Store the current message count for this team in session
-        @SuppressWarnings("unchecked")
-        java.util.Map<String, Integer> teamMessageCounts = (java.util.Map<String, Integer>) session
-                .getAttribute("teamMessageCounts");
-        if (teamMessageCounts == null) {
-            teamMessageCounts = new java.util.HashMap<>();
-            session.setAttribute("teamMessageCounts", teamMessageCounts);
-        }
-
-        // Get total message count for this team
-        java.util.List<Message> allMessages = messageRepository.findByTeamIdOrderByCreatedAtAsc(teamId);
-        teamMessageCounts.put(teamId.toString(), allMessages.size());
-
+        // This endpoint is now handled by getMessages which auto-marks messages as read
         return "{\"success\": true}";
     }
 
@@ -340,30 +366,8 @@ public class HelloController {
             return java.util.Map.of("count", 0);
         }
 
-        @SuppressWarnings("unchecked")
-        java.util.Map<String, Integer> teamMessageCounts = (java.util.Map<String, Integer>) session
-                .getAttribute("teamMessageCounts");
-
-        int lastSeenCount = 0;
-        if (teamMessageCounts != null && teamMessageCounts.containsKey(teamId.toString())) {
-            lastSeenCount = teamMessageCounts.get(teamId.toString());
-        }
-
-        // Get all messages for this team
-        java.util.List<Message> allMessages = messageRepository.findByTeamIdOrderByCreatedAtAsc(teamId);
-
-        // Count NEW messages from other users (messages after the last seen count)
-        int unreadCount = 0;
-        String currentUserName = (String) session.getAttribute("userName");
-
-        for (int i = lastSeenCount; i < allMessages.size(); i++) {
-            Message msg = allMessages.get(i);
-            if (!msg.getSender().getName().equals(currentUserName)) {
-                unreadCount++;
-            }
-        }
-
-        return java.util.Map.of("count", unreadCount);
+        long unreadCount = readStatusRepository.countUnreadMessagesByTeamAndUser(teamId, userId);
+        return java.util.Map.of("count", (int) unreadCount);
     }
 
     @GetMapping("/logout")
