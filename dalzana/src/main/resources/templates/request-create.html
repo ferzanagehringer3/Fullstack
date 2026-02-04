@@ -23,6 +23,34 @@
         .btn-secondary { background: #6b7280; color: #fff; }
         .btn-secondary:hover { background: #4b5563; }
         .buttons { margin-top: 24px; display: flex; gap: 12px; }
+        .skills-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+        .skill-chip { position: relative; display: inline-flex; align-items: center; }
+        .skill-chip input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .skill-chip span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f3f4f6;
+            color: #374151;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .skill-chip:hover span { background: #e5e7eb; }
+        .skill-chip input:checked + span {
+            background: #dbeafe;
+            color: #1e40af;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+        }
     </style>
 </head>
 <body>
@@ -42,11 +70,14 @@
             <textarea id="description" name="description" placeholder="Details zum Request..."></textarea>
         </div>
         <div class="form-group">
-            <label for="requiredSkills">Benötigte Skills</label>
-            <select id="requiredSkills" name="requiredSkills" multiple>
-                <option th:each="s : ${skills}" th:value="${s}" th:text="${s}">Skill</option>
-            </select>
-            <small style="color: #666; display: block; margin-top: 8px;">Halte Strg/Cmd gedrückt, um mehrere Skills auszuwählen</small>
+            <label>Benötigte Skills</label>
+            <div class="skills-grid">
+                <label class="skill-chip" th:each="s : ${skills}">
+                    <input type="checkbox" name="requiredSkills" th:value="${s}" />
+                    <span th:text="${s}">Skill</span>
+                </label>
+            </div>
+            <small style="color: #666; display: block; margin-top: 8px;">Mehrfachauswahl möglich</small>
         </div>
         <div class="buttons">
             <button class="btn btn-primary" type="submit">Erstellen</button>
