@@ -20,13 +20,12 @@
             }
 
             .app-header nav {
-                max-width: 1200px;
-                margin: 0 auto;
                 display: flex;
-                justify-content: space-between;
+                justify-content: flex-start;
                 align-items: center;
                 padding: 0 24px;
                 height: 64px;
+                gap: 32px;
             }
 
             .app-header .logo {
@@ -37,11 +36,13 @@
                 display: flex;
                 align-items: center;
                 gap: 8px;
+                flex: 0 0 auto;
             }
 
             .app-header .nav-center {
                 display: flex;
                 gap: 32px;
+                flex: 0 0 auto;
             }
 
             .app-header .nav-center a {
@@ -75,6 +76,8 @@
                 display: flex;
                 align-items: center;
                 gap: 16px;
+                flex: 0 0 auto;
+                margin-left: auto;
             }
 
             .app-header .user-info {
@@ -151,7 +154,7 @@
         </style>
 
         <nav>
-            <a href="/home" class="logo">🚀 Dalzana</a>
+            <a href="/home" class="logo">Dalzana</a>
 
             <div class="nav-center">
                 <a href="/home" th:href="@{/home}">Teams</a>

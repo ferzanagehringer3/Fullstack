@@ -3,6 +3,7 @@ package ch.fullstack.dalzana.controller;
 import ch.fullstack.dalzana.model.RequestStatus;
 import ch.fullstack.dalzana.model.TeamJoinRequest;
 import ch.fullstack.dalzana.model.TeamJoinRequestStatus;
+import ch.fullstack.dalzana.model.AppUser;
 import ch.fullstack.dalzana.repo.AppUserRepository;
 import ch.fullstack.dalzana.repo.RequestRepository;
 import ch.fullstack.dalzana.repo.TeamJoinRequestRepository;
@@ -36,6 +37,26 @@ public class TeamController {
     
     @Value("${app.base-url}")
     private String appBaseUrl;
+
+    @ModelAttribute
+    public void addCommonAttributes(HttpSession session, Model model) {
+        Long userId = (Long) session.getAttribute("userId");
+        
+        // Immer den aktuellen User aus der DB holen
+        if (userId != null) {
+            var userOpt = userRepository.findById(userId);
+            if (userOpt.isPresent()) {
+                AppUser user = userOpt.get();
+                model.addAttribute("userName", user.getName());
+                model.addAttribute("currentUserRole", user.getRole().name());
+                
+                // Profilbild hinzufügen (ist bereits als String gespeichert)
+                if (user.getProfilePicture() != null && !user.getProfilePicture().isEmpty()) {
+                    model.addAttribute("userProfilePicture", user.getProfilePicture());
+                }
+            }
+        }
+    }
 
     public TeamController(TeamService teamService,
                           AppUserRepository userRepository,
