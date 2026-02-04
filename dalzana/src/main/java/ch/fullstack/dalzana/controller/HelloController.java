@@ -2,6 +2,7 @@ package ch.fullstack.dalzana.controller;
 
 import ch.fullstack.dalzana.service.TeamService;
 import ch.fullstack.dalzana.service.EmailService;
+import ch.fullstack.dalzana.service.RequestService;
 import jakarta.servlet.http.HttpSession;
 import ch.fullstack.dalzana.model.AppUser;
 import ch.fullstack.dalzana.model.Skill;
@@ -31,16 +32,18 @@ import java.util.Set;
 public class HelloController {
 
     private final TeamService teamService;
+    private final RequestService requestService;
     private final AppUserRepository userRepository;
     private final MessageRepository messageRepository;
     private final TeamRepository teamRepository;
     private final EmailService emailService;
     private final Argon2PasswordEncoder encoder;
 
-    public HelloController(TeamService teamService, AppUserRepository userRepository, 
+    public HelloController(TeamService teamService, RequestService requestService, AppUserRepository userRepository, 
                           MessageRepository messageRepository, TeamRepository teamRepository,
                           EmailService emailService) {
         this.teamService = teamService;
+        this.requestService = requestService;
         this.userRepository = userRepository;
         this.messageRepository = messageRepository;
         this.teamRepository = teamRepository;
@@ -113,6 +116,7 @@ public class HelloController {
             return "redirect:/login";
 
         model.addAttribute("teams", teamService.findByUserId(userId));
+        model.addAttribute("requests", requestService.findAll());
         model.addAttribute("users", userRepository.findAll());
         model.addAttribute("currentUserId", userId);
         model.addAttribute("currentUserName", session.getAttribute("userName"));

@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -7,14 +8,133 @@
   <link rel="stylesheet" th:href="@{/css/layout.css}">
   <link rel="stylesheet" th:href="@{/css/main.css}">
   <style>
-    body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #f6f7fb; padding-top: 64px; }
-    .app { height: 100vh; display: flex; }
-    .left { width: 260px; border-right: 1px solid #e5e7eb; padding: 20px; overflow-y: auto; background: #fff; }
-    .left h3 { margin: 0 0 16px 0; font-size: 18px; color: #111827; }
-    .main { flex: 1; padding: 24px; display: flex; flex-direction: column; background: #f6f7fb; }
-    .teams .team-row { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
-    .teams button.team { flex: 1; padding: 10px 12px; text-align: left; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer; transition: all 0.2s; font-size: 14px; color: #374151; position: relative; }
-    .teams button.team:hover { background: #f3f4f6; border-color: #d1d5db; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f6f7fb;
+      padding-top: 64px;
+    }
+
+    .app {
+      height: 100vh;
+      display: flex;
+    }
+
+    /* SIDEBAR */
+    .left {
+      flex: 0 0 260px;
+      width: 260px;
+      min-width: 260px;
+      border-right: 1px solid #e5e7eb;
+      padding: 20px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: #fff;
+      transition: width 0.3s ease, flex-basis 0.3s ease, padding 0.3s ease;
+    }
+
+    /* collapsed = schmale Leiste (Toggle bleibt sichtbar) */
+    .left.collapsed {
+      flex-basis: 64px;
+      width: 64px;
+      min-width: 64px;
+      padding: 12px 10px;
+      border-right: 1px solid #e5e7eb;
+      overflow: hidden;
+    }
+
+    .sidebar-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .sidebar-head h3 {
+      margin: 0;
+      font-size: 18px;
+      color: #111827;
+    }
+
+    .left.collapsed .sidebar-head {
+      justify-content: center;
+      margin-bottom: 0;
+    }
+
+    .left.collapsed .sidebar-head h3 {
+      display: none;
+    }
+
+    .sidebar-content {
+      display: block;
+    }
+
+    .left.collapsed .sidebar-content {
+      display: none;
+    }
+
+    .toggle-sidebar-btn {
+      padding: 8px 12px;
+      border: 1px solid #dc3545;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #dc3545;
+      color: #fff;
+      font-size: 20px;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
+    .toggle-sidebar-btn:hover {
+      background: #c82333;
+      border-color: #c82333;
+      color: #fff;
+    }
+
+    .create-btn {
+      width: 100%;
+      padding: 12px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+
+    .create-btn:hover {
+      background: #2563eb;
+    }
+
+    .teams .team-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 0;
+    }
+
+    .teams button.team {
+      flex: 1;
+      padding: 10px 12px;
+      text-align: left;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 14px;
+      color: #374151;
+      position: relative;
+    }
+
+    .teams button.team:hover {
+      background: #f3f4f6;
+      border-color: #d1d5db;
+    }
+
     .teams .team-badge {
       position: absolute;
       top: 6px;
@@ -26,70 +146,352 @@
       display: none;
       animation: pulse 1s infinite;
     }
-    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 16px; gap: 16px; background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 16px; }
-    .team-title { display: flex; flex-direction: column; gap: 6px; }
-    .team-title h2 { margin: 0; font-size: 20px; color: #111827; }
-    .team-members { font-size: 13px; color: #6b7280; }
-    .team-members a { color: #3b82f6; text-decoration: none; }
-    .team-members a:hover { text-decoration: underline; }
-    .header-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
-    .header-actions button, .header-actions a button { padding: 8px 16px; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer; background: #fff; color: #374151; font-size: 14px; font-weight: 500; transition: all 0.2s; }
-    .header-actions button:hover, .header-actions a button:hover { background: #f9fafb; border-color: #d1d5db; }
-    .chat { flex: 1; padding: 20px; overflow-y: auto; background: #fff; border-radius: 8px; display: flex; flex-direction: column; gap: 12px; }
-    .msg { padding: 12px 16px; border-radius: 8px; max-width: 50%; word-wrap: break-word; }
-    .msg.sent { align-self: flex-end; background: #3b82f6; color: #fff; border-radius: 8px 0 8px 8px; }
-    .msg.received { align-self: flex-start; background: #e5e7eb; color: #111827; border-radius: 0 8px 8px 8px; }
-    .msg-sender { font-size: 12px; font-weight: 600; opacity: 0.8; margin-bottom: 4px; }
-    .msg.new-message { animation: highlight 2s ease-out; }
-    @keyframes highlight { from { background: #fef3c7; } to { background: transparent; } }
-    .composer { display: flex; gap: 10px; border-top: 1px solid #e5e7eb; padding-top: 16px; }
-    input[type="text"] { flex: 1; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 14px; }
-    input[type="text"]:focus { outline: none; border-color: #3b82f6; }
-    .composer button { padding: 10px 20px; background: #3b82f6; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.2s; }
-    .composer button:hover { background: #2563eb; }
-    .form-group { margin: 12px 0; }
-    .form-group label { display: block; font-weight: bold; margin-bottom: 4px; }
-    .form-group input, .form-group select { width: 100%; padding: 6px; box-sizing: border-box; }
-    .form-group button { background: #10b981; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; margin-top: 8px; transition: all 0.2s; }
-    .form-group button:hover { background: #059669; }
-    .message { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; }
-    .message.success { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
-    .message.error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-    .create-btn { width: 100%; padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; }
-    .create-btn:hover { background: #2563eb; }
+
+    /* MAIN / CHAT */
+    .main {
+      flex: 1;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      background: #f6f7fb;
+      min-width: 0;
+      /* wichtig gegen overflow in flex layouts */
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 16px;
+      gap: 16px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .team-title {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .team-title h2 {
+      margin: 0;
+      font-size: 20px;
+      color: #111827;
+      word-break: break-word;
+    }
+
+    .team-members {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .team-members a {
+      color: #3b82f6;
+      text-decoration: none;
+    }
+
+    .team-members a:hover {
+      text-decoration: underline;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto;
+      flex-wrap: wrap;
+    }
+
+    .header-actions button,
+    .header-actions a button {
+      padding: 8px 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #fff;
+      color: #374151;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .header-actions button:hover,
+    .header-actions a button:hover {
+      background: #f9fafb;
+      border-color: #d1d5db;
+    }
+
+    .chat {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: #fff;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .msg {
+      padding: 12px 16px;
+      border-radius: 8px;
+      max-width: 50%;
+      word-wrap: break-word;
+    }
+
+    .msg.sent {
+      align-self: flex-end;
+      background: #3b82f6;
+      color: #fff;
+      border-radius: 8px 0 8px 8px;
+    }
+
+    .msg.received {
+      align-self: flex-start;
+      background: #e5e7eb;
+      color: #111827;
+      border-radius: 0 8px 8px 8px;
+    }
+
+    .msg-sender {
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0.8;
+      margin-bottom: 4px;
+    }
+
+    .msg.new-message {
+      animation: highlight 2s ease-out;
+    }
+
+    @keyframes highlight {
+      from {
+        background: #fef3c7;
+      }
+
+      to {
+        background: transparent;
+      }
+    }
+
+    .composer {
+      display: flex;
+      gap: 10px;
+      border-top: 1px solid #e5e7eb;
+      padding-top: 16px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 14px;
+      min-width: 0;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+
+    .composer button {
+      padding: 10px 20px;
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .composer button:hover {
+      background: #2563eb;
+    }
+
+    .message {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      font-size: 14px;
+    }
+
+    .message.success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .message.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    /* Accordion */
+    .accordion {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .acc-item {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .acc-trigger {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      background: #f9fafb;
+      border: 0;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .acc-trigger:hover {
+      background: #f3f4f6;
+    }
+
+    .acc-icon {
+      transition: transform 0.2s ease;
+    }
+
+    .acc-item.open .acc-icon {
+      transform: rotate(180deg);
+    }
+
+    .acc-panel {
+      display: none;
+      padding: 10px 12px 12px 12px;
+    }
+
+    .acc-item.open .acc-panel {
+      display: block;
+    }
+
+    /* Requests list look */
+    .request-row {
+      margin: 8px 0;
+    }
+
+    .request-item {
+      padding: 10px 12px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+    }
+
+    .request-title {
+      font-size: 14px;
+      color: #374151;
+      font-weight: 500;
+    }
+
+    .request-meta {
+      margin-top: 4px;
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    /* Wenn Sidebar collapsed: Inhalt ausblenden (wie bei dir) */
+    .left.collapsed .sidebar-content {
+      display: none;
+    }
   </style>
 </head>
 
 <body>
   <div th:insert="~{fragments/header}"></div>
+
   <div class="app">
     <!-- LEFT: Teams -->
     <div class="left">
-      <h3>Teams</h3>
-
-      <!-- Create Team Button -->
-      <div th:if="${currentUserRole == 'MANAGER'}" style="margin-bottom: 16px;">
-        <a href="/teams/create" style="text-decoration: none;">
-          <button class="create-btn">
-            + Neues Team erstellen
-          </button>
-        </a>
+      <div class="sidebar-head">
+        <h3>Menue</h3>
+        <button id="toggleSidebarBtn" class="toggle-sidebar-btn" title="Sidebar ein/aus"
+          aria-label="Sidebar ein/aus">☰</button>
       </div>
 
-      <!-- Team List -->
-      <div class="teams" id="teamList">
-        <div th:if="${#lists.isEmpty(teams)}">Keine Teams vorhanden</div>
-        <div th:each="t : ${teams}" class="team-row">
-          <button class="team"
-                  th:data-team-id="${t.id}"
-                  th:data-team-name="${t.name}"
-                  th:data-request-title="${t.request?.title}"
-                  th:data-team-members="${#strings.listJoin(t.members.![name], ', ')}">
-            <span th:text="${t.name}">Team</span>
-            <span th:if="${t.request}" style="color: #6b7280; font-size: 12px; display: block; margin-top: 4px;" th:text="'Request: ' + ${t.request.title}">Request</span>
-          </button>
-        </div>
-      </div>
+      <div class="sidebar-content">
+
+        <div class="accordion" id="sidebarAccordion">
+
+          <!-- TEAMS -->
+          <div class="acc-item open" data-acc="teams">
+            <button type="button" class="acc-trigger" aria-expanded="true" aria-controls="acc-teams">
+              <span>Teams</span>
+              <span class="acc-icon">▾</span>
+            </button>
+
+            <div class="acc-panel" id="acc-teams">
+              <!-- Create Team Button (nur hier drin) -->
+              <div th:if="${currentUserRole == 'MANAGER'}" style="margin: 12px 0 16px 0;">
+                <a href="/teams/create" style="text-decoration: none;">
+                  <button class="create-btn">+ Neues Team erstellen</button>
+                </a>
+              </div>
+
+              <!-- Team List -->
+              <div class="teams" id="teamList">
+                <div th:if="${#lists.isEmpty(teams)}">Keine Teams vorhanden</div>
+
+                <div th:each="t : ${teams}" class="team-row">
+                  <button class="team" th:data-team-id="${t.id}" th:data-team-name="${t.name}"
+                    th:data-request-title="${t.request?.title}"
+                    th:data-team-members="${#strings.listJoin(t.members.![name], ', ')}">
+                    <span th:text="${t.name}">Team</span>
+                    <span th:if="${t.request}" style="color:#6b7280;font-size:12px;display:block;margin-top:4px;"
+                      th:text="'Request: ' + ${t.request.title}">Request</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- REQUESTS -->
+          <div class="acc-item" data-acc="requests">
+            <button type="button" class="acc-trigger" aria-expanded="false" aria-controls="acc-requests">
+              <span>Requests</span>
+              <span class="acc-icon">▾</span>
+            </button>
+
+            <div class="acc-panel" id="acc-requests">
+              <div class="requests" id="requestList">
+                <div th:if="${requests == null or #lists.isEmpty(requests)}">Keine Requests vorhanden</div>
+
+                <div th:each="r : ${requests}" class="request-row">
+                  <!-- Wenn du eine Detailseite hast, kannst du das auch als <a> machen -->
+                  <div class="request-item">
+                    <div class="request-title" th:text="${r.title}">Request Titel</div>
+                    <!-- optional: weitere Infos, falls vorhanden -->
+                    <div class="request-meta" th:if="${r.status}" th:text="${r.status}">Status</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /accordion -->
+
+      </div><!-- /sidebar-content -->
     </div>
 
     <!-- CENTER: Chat -->
@@ -101,14 +503,14 @@
         <div class="team-title">
           <h2 id="teamTitle" th:if="${!#lists.isEmpty(teams)}">
             <span th:text="${teams[0].name}">Team</span>
-            <span th:if="${teams[0].request}" style="color: #6b7280; font-size: 16px;" th:text="' - Request: ' + ${teams[0].request.title}"></span>
+            <span th:if="${teams[0].request}" style="color: #6b7280; font-size: 16px;"
+              th:text="' - Request: ' + ${teams[0].request.title}"></span>
           </h2>
           <h2 id="teamTitle" th:if="${#lists.isEmpty(teams)}">Kein Team</h2>
 
           <div class="team-members" th:if="${!#lists.isEmpty(teams)}">
-            <a id="teamMembersLink"
-               th:href="@{/teams/{id}(id=${teams[0].id})}"
-               th:text="${#strings.listJoin(teams[0].members.![name], ', ')}">Mitglieder</a>
+            <a id="teamMembersLink" th:href="@{/teams/{id}(id=${teams[0].id})}"
+              th:text="${#strings.listJoin(teams[0].members.![name], ', ')}">Mitglieder</a>
           </div>
           <div class="team-members" th:if="${#lists.isEmpty(teams)}">Keine Mitglieder</div>
         </div>
@@ -117,10 +519,9 @@
           <a id="profileLink" th:href="@{/profile}" style="text-decoration: none;">
             <button id="profileBtn">Mein Profil</button>
           </a>
-          <a id="filesLink"
-             th:if="${!#lists.isEmpty(teams)}"
-             th:href="@{/teams/{teamId}/files(teamId=${teams[0].id})}"
-             style="text-decoration: none;">
+
+          <a id="filesLink" th:if="${!#lists.isEmpty(teams)}" th:href="@{/teams/{teamId}/files(teamId=${teams[0].id})}"
+            style="text-decoration: none;">
             <button id="filesBtn">Files</button>
           </a>
           <button id="filesBtn" th:if="${#lists.isEmpty(teams)}" disabled>Files</button>
@@ -131,7 +532,6 @@
         </div>
       </div>
 
-      <!-- Add Member Form -->
       <div class="add-member" th:if="${!#lists.isEmpty(teams)}">
         <div class="chat" id="chatBox">
           <!-- Messages will be loaded here -->
@@ -142,38 +542,37 @@
         <input id="messageInput" type="text" placeholder="Type a message..." />
         <button type="submit">Send</button>
       </form>
+
       <div th:if="${#lists.isEmpty(teams)}" style="text-align: center; color: #999; padding: 20px;">
         Keine Teams vorhanden - erstelle ein Team um zu chatten
       </div>
     </div>
   </div>
 
-
-
-  <script>
+  <script th:inline="javascript">
     let currentTeamId = null;
     let messageInterval = null;
     let teamLastMessageCount = {}; // Track message count per team
-    const currentUserName = /*[[${userName}]]*/ 'Unknown';
+    const currentUserName = /*[[${currentUserName}]]*/ 'Unknown';
 
     // Initialize with first team if available
     const teams = document.querySelectorAll('.team');
     if (teams.length > 0) {
       const firstTeam = teams[0];
       currentTeamId = firstTeam.dataset.teamId;
-      
+
       // Initialize message counts for all teams
       teams.forEach(team => {
         const teamId = team.dataset.teamId;
         teamLastMessageCount[teamId] = 0;
       });
-      
+
       loadMessages();
       startMessagePolling();
     }
 
     // Switch team title + files link + chat
-    document.getElementById("teamList").addEventListener("click", (e) => {
+    document.getElementById("teamList")?.addEventListener("click", (e) => {
       const btn = e.target.closest(".team");
       if (!btn) return;
 
@@ -203,10 +602,7 @@
         membersLink.textContent = teamMembers || 'Keine Mitglieder';
       }
 
-      // Load messages for new team
       loadMessages();
-      
-      // Clear badge for current team
       updateTeamBadge(teamId, false);
     });
 
@@ -246,48 +642,49 @@
         const messages = await response.json();
 
         const chatBox = document.getElementById("chatBox");
+        if (!chatBox) return;
+
         chatBox.innerHTML = '';
 
         messages.forEach(msg => {
           const msgDiv = document.createElement("div");
-          const isSent = msg.senderName === currentUserName;
-          msgDiv.className = `msg ${isSent ? 'received' : 'sent'}`;
-          
+          const isSent = (msg.senderName || '').trim().toLowerCase() === (currentUserName || '').trim().toLowerCase();
+
+          // NOTE: deine alte Logik war vertauscht. Wenn du "sent" rechts (blau) willst,
+          // dann ist sent = isSent. Ich lasse es "korrekt" so:
+          msgDiv.className = `msg ${isSent ? 'sent' : 'received'}`;
+
           let html = '';
           if (!isSent) {
             html += `<div class="msg-sender">${msg.senderName}</div>`;
           }
           html += msg.content;
           msgDiv.innerHTML = html;
-          
+
           chatBox.appendChild(msgDiv);
         });
 
-        // Update last seen count for current team
         teamLastMessageCount[currentTeamId] = messages.length;
-        
         chatBox.scrollTop = chatBox.scrollHeight;
       } catch (error) {
         console.error('Error loading messages:', error);
       }
     }
 
-    // Check all teams for new messages
     async function checkAllTeamsForMessages() {
       const teamButtons = document.querySelectorAll('.team');
-      
+
       for (const teamBtn of teamButtons) {
         const teamId = teamBtn.dataset.teamId;
         if (!teamId) continue;
-        
+
         try {
           const response = await fetch(`/home/messages/${teamId}`);
           const messages = await response.json();
-          
+
           const previousCount = teamLastMessageCount[teamId] || 0;
           const currentCount = messages.length;
-          
-          // Check if there are new messages from OTHER users
+
           let hasNewMessagesFromOthers = false;
           if (currentCount > previousCount) {
             for (let i = previousCount; i < currentCount; i++) {
@@ -297,26 +694,23 @@
               }
             }
           }
-          
-          // Only show badge for teams OTHER than the current one
+
           if (teamId != currentTeamId && hasNewMessagesFromOthers) {
             updateTeamBadge(teamId, true);
             playNotificationSound();
           }
-          
         } catch (error) {
           console.error(`Error checking messages for team ${teamId}:`, error);
         }
       }
     }
 
-    // Update badge (show/hide red dot)
     function updateTeamBadge(teamId, show) {
       const teamBtn = document.querySelector(`.team[data-team-id="${teamId}"]`);
       if (!teamBtn) return;
-      
+
       let badge = teamBtn.querySelector('.team-badge');
-      
+
       if (show) {
         if (!badge) {
           badge = document.createElement('span');
@@ -325,28 +719,25 @@
         }
         badge.style.display = 'block';
       } else {
-        if (badge) {
-          badge.style.display = 'none';
-        }
+        if (badge) badge.style.display = 'none';
       }
     }
 
-    // Simple notification sound
     function playNotificationSound() {
       try {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
+
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
+
         oscillator.frequency.value = 800;
         oscillator.type = 'sine';
-        
+
         gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-        
+
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.3);
       } catch (error) {
@@ -354,16 +745,52 @@
       }
     }
 
-    // Poll for new messages every 2 seconds
     function startMessagePolling() {
       if (messageInterval) clearInterval(messageInterval);
       messageInterval = setInterval(() => {
-        loadMessages(); // Reload current team messages
-        checkAllTeamsForMessages(); // Check all teams for badges
+        loadMessages();
+        checkAllTeamsForMessages();
       }, 2000);
     }
 
-    // Files button links to selected team
+    // Sidebar toggle + restore
+    document.addEventListener("DOMContentLoaded", () => {
+      const sidebar = document.querySelector(".left");
+      const btn = document.getElementById("toggleSidebarBtn");
+      if (!sidebar || !btn) return;
+
+      function applyState(collapsed) {
+        sidebar.classList.toggle("collapsed", collapsed);
+        btn.setAttribute("aria-expanded", String(!collapsed));
+      }
+
+      applyState(localStorage.getItem("sidebarCollapsed") === "true");
+
+      btn.addEventListener("click", () => {
+        const collapsed = !sidebar.classList.contains("collapsed");
+        applyState(collapsed);
+        localStorage.setItem("sidebarCollapsed", String(collapsed));
+      });
+
+      // Accordion functionality
+      const accordion = document.getElementById("sidebarAccordion");
+      if (accordion) {
+        const triggers = accordion.querySelectorAll(".acc-trigger");
+        
+        triggers.forEach(trigger => {
+          trigger.addEventListener("click", () => {
+            const item = trigger.closest(".acc-item");
+            if (!item) return;
+            
+            // Toggle current item
+            item.classList.toggle("open");
+            const isOpen = item.classList.contains("open");
+            trigger.setAttribute("aria-expanded", String(isOpen));
+          });
+        });
+      }
+    });
   </script>
 </body>
+
 </html>
