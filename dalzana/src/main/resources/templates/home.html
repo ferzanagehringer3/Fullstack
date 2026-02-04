@@ -379,6 +379,69 @@
       border: 1px solid #fecaca;
     }
 
+    .read-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+
+    .read-modal.open {
+      display: flex;
+    }
+
+    .read-modal-content {
+      background: #fff;
+      border-radius: 10px;
+      width: 320px;
+      max-width: 90vw;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      padding: 16px;
+    }
+
+    .read-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .read-modal-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .read-modal-close {
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 12px;
+      color: #111827;
+    }
+
+    .read-modal-body {
+      font-size: 13px;
+      color: #374151;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .msg-read-status {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 4px;
+      cursor: pointer;
+    }
+
     /* Accordion */
     .accordion {
       display: flex;
@@ -516,11 +579,49 @@
     </div>
   </div>
 
+  <div class="read-modal" id="readModal">
+    <div class="read-modal-content">
+      <div class="read-modal-header">
+        <div class="read-modal-title">Gelesen von</div>
+        <button class="read-modal-close" id="readModalClose">Schliessen</button>
+      </div>
+      <div class="read-modal-body" id="readModalBody"></div>
+    </div>
+  </div>
+
   <script th:inline="javascript">
     let currentTeamId = null;
     let messageInterval = null;
     let teamLastMessageCount = {}; // Track message count per team
     const currentUserName = /*[[${currentUserName}]]*/ 'Unknown';
+    const readModal = document.getElementById('readModal');
+    const readModalBody = document.getElementById('readModalBody');
+    const readModalClose = document.getElementById('readModalClose');
+
+    function openReadModal(readBy) {
+      if (!readModal || !readModalBody) return;
+      if (!readBy) {
+        readModalBody.innerHTML = '<div>Niemand hat gelesen</div>';
+      } else {
+        const names = readBy.split(',').map(n => n.trim()).filter(Boolean);
+        readModalBody.innerHTML = names.map(n => `<div>${n}</div>`).join('') || '<div>Niemand hat gelesen</div>';
+      }
+      readModal.classList.add('open');
+    }
+
+    function closeReadModal() {
+      if (!readModal) return;
+      readModal.classList.remove('open');
+    }
+
+    if (readModalClose) {
+      readModalClose.addEventListener('click', closeReadModal);
+    }
+    if (readModal) {
+      readModal.addEventListener('click', (e) => {
+        if (e.target === readModal) closeReadModal();
+      });
+    }
 
     // Initialize with first team if available
     const teams = document.querySelectorAll('.team');
@@ -624,7 +725,7 @@
 
         messages.forEach(msg => {
           const msgDiv = document.createElement("div");
-          const isSent = (msg.senderName || '').trim().toLowerCase() === (currentUserName || '').trim().toLowerCase();
+          const isSent = msg.isSender;
 
           msgDiv.className = `msg ${isSent ? 'sent' : 'received'}`;
 
@@ -632,10 +733,23 @@
           if (!isSent) {
             html += `<div class="msg-sender">${msg.senderName}</div>`;
           }
-          html += msg.content;
+          html += `<div>${msg.content}</div>`;
+          
+          // Add read status for sent messages
+          if (isSent && msg.totalRecipients > 0) {
+            const readBy = msg.readByUsers || '';
+            html += `<div class="msg-read-status" data-readby="${readBy}">${msg.readCount} von ${msg.totalRecipients} gelesen</div>`;
+          }
+          
           msgDiv.innerHTML = html;
-
           chatBox.appendChild(msgDiv);
+        });
+
+        chatBox.querySelectorAll('.msg-read-status').forEach(el => {
+          el.addEventListener('click', () => {
+            const readBy = el.dataset.readby || '';
+            openReadModal(readBy);
+          });
         });
 
         teamLastMessageCount[currentTeamId] = messages.length;
@@ -659,26 +773,12 @@
         if (!teamId) continue;
 
         try {
-          const response = await fetch(`/home/messages/${teamId}`);
-          const messages = await response.json();
+          const response = await fetch(`/home/teams/${teamId}/unread-count`);
+          const data = await response.json();
+          const unreadCount = data.count || 0;
 
-          const previousCount = teamLastMessageCount[teamId] || 0;
-          const currentCount = messages.length;
-
-          let hasNewMessagesFromOthers = false;
-          if (currentCount > previousCount) {
-            for (let i = previousCount; i < currentCount; i++) {
-              if (messages[i].senderName !== currentUserName) {
-                hasNewMessagesFromOthers = true;
-                break;
-              }
-            }
-          }
-
-          if (teamId != currentTeamId && hasNewMessagesFromOthers) {
-            updateTeamBadge(teamId, true);
-            playNotificationSound();
-          }
+          // Show badge only if there are unread messages
+          updateTeamBadge(teamId, unreadCount > 0);
         } catch (error) {
           console.error(`Error checking messages for team ${teamId}:`, error);
         }
@@ -689,18 +789,8 @@
       const teamBtn = document.querySelector(`.team[data-team-id="${teamId}"]`);
       if (!teamBtn) return;
 
-      let badge = teamBtn.querySelector('.team-badge');
-
-      if (show) {
-        if (!badge) {
-          badge = document.createElement('span');
-          badge.className = 'team-badge';
-          teamBtn.appendChild(badge);
-        }
-        badge.style.display = 'block';
-      } else {
-        if (badge) badge.style.display = 'none';
-      }
+      const badge = teamBtn.querySelector('.team-badge');
+      if (badge) badge.style.display = 'none';
     }
 
     function playNotificationSound() {
