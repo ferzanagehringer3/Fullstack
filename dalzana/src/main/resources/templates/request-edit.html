@@ -42,6 +42,14 @@
             <textarea id="description" name="description" th:text="${request.description}"></textarea>
         </div>
         <div class="form-group">
+            <label for="status">Status *</label>
+            <select id="status" name="status" required style="height: auto;">
+                <option value="NEW" th:selected="${request.status.name() == 'NEW'}">🆕 NEU</option>
+                <option value="IN_PROGRESS" th:selected="${request.status.name() == 'IN_PROGRESS'}">⚙️ IN BEARBEITUNG</option>
+                <option value="DONE" th:selected="${request.status.name() == 'DONE'}">✅ ERLEDIGT</option>
+            </select>
+        </div>
+        <div class="form-group">
             <label for="requiredSkills">Benötigte Skills</label>
             <select id="requiredSkills" name="requiredSkills" multiple>
                 <option th:each="s : ${skills}" 

@@ -2,6 +2,7 @@ package ch.fullstack.dalzana.controller;
 
 
 import ch.fullstack.dalzana.model.Request;
+import ch.fullstack.dalzana.model.RequestStatus;
 import ch.fullstack.dalzana.model.Skill;
 import ch.fullstack.dalzana.service.RequestService;
 import ch.fullstack.dalzana.service.TeamService;
@@ -84,6 +85,7 @@ public class RequestController {
                       @RequestParam String title,
                       @RequestParam(required = false) String description,
                       @RequestParam(required = false) List<Skill> requiredSkills,
+                      @RequestParam RequestStatus status,
                       HttpSession session,
                       RedirectAttributes redirectAttributes) {
         String userRole = (String) session.getAttribute("userRole");
@@ -96,6 +98,7 @@ public class RequestController {
             Request request = requestService.findById(id);
             request.setTitle(title);
             request.setDescription(description);
+            request.setStatus(status);
             request.clearRequiredSkills();
             if (requiredSkills != null) {
                 requiredSkills.forEach(request::addRequiredSkill);

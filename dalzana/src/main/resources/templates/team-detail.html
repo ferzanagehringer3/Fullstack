@@ -31,7 +31,53 @@
 <div class="container">
     <a class="btn btn-secondary" href="/home">← Zurück</a>
 
-    <h1 th:text="${team.name}">Team Name</h1>
+    <h1>
+        <span th:text="${team.name}">Team Name</span>
+        <span th:if="${team.request}" style="color: #6b7280; font-size: 20px;">
+            - Request: <span th:text="${team.request.title}">Request Name</span>
+        </span>
+    </h1>
+
+    <!-- Request Info Sektion -->
+    <div th:if="${team.request}" style="background: #f3f4f6; padding: 16px; border-radius: 6px; margin-top: 20px; margin-bottom: 24px;">
+        <p style="margin: 0 0 8px 0; font-weight: 600; color: #374151;">📋 Zugehöriger Request</p>
+        <a th:href="@{/requests/{id}(id=${team.request.id})}" 
+           style="color: #3b82f6; text-decoration: none; font-weight: 500; font-size: 15px;"
+           th:text="${team.request.title}">
+            Request Name
+        </a>
+        <div style="margin-top: 8px; color: #6b7280; font-size: 13px;" th:if="${team.request.description}">
+            <span th:text="${team.request.description}">Beschreibung</span>
+        </div>
+        
+        <!-- Request Status -->
+        <div style="margin-top: 12px;">
+            <span style="font-weight: 600; color: #374151; font-size: 13px; margin-right: 8px;">Status:</span>
+            <span th:if="${team.request.status.name() == 'NEW'}" 
+                  style="display: inline-block; background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                🆕 NEU
+            </span>
+            <span th:if="${team.request.status.name() == 'IN_PROGRESS'}" 
+                  style="display: inline-block; background: #fef3c7; color: #92400e; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                ⚙️ IN BEARBEITUNG
+            </span>
+            <span th:if="${team.request.status.name() == 'DONE'}" 
+                  style="display: inline-block; background: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                ✅ ERLEDIGT
+            </span>
+        </div>
+        
+        <!-- Status ändern -->
+        <form th:action="@{/teams/{teamId}/request/status(teamId=${team.id})}" method="post" style="margin-top: 12px;">
+            <select name="status" style="padding: 6px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; margin-right: 8px;">
+                <option value="NEW" th:selected="${team.request.status.name() == 'NEW'}">🆕 NEU</option>
+                <option value="IN_PROGRESS" th:selected="${team.request.status.name() == 'IN_PROGRESS'}">⚙️ IN BEARBEITUNG</option>
+                <option value="DONE" th:selected="${team.request.status.name() == 'DONE'}">✅ ERLEDIGT</option>
+            </select>
+            <button type="submit" style="padding: 6px 14px; background: #3b82f6; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">Status ändern</button>
+        </form>
+    </div>
+
     <p>Mitglieder</p>
 
     <div class="members">
@@ -45,8 +91,11 @@
         </div>
     </div>
 
-    <div class="actions">
-        <a class="btn btn-primary" th:href="@{/teams/{id}/edit(id=${team.id})}">Mitglied hinzufügen</a>
+    <div class="actions" th:if="${currentUserRole == 'MANAGER'}">
+        <a class="btn btn-primary" th:href="@{/teams/{id}/edit(id=${team.id})}">✏️ Team bearbeiten</a>
+        <form th:action="@{/teams/{id}/delete(id=${team.id})}" method="post" onsubmit="return confirm('Team wirklich löschen?');" style="display: inline;">
+            <button type="submit" class="btn" style="background: #dc3545; color: #fff;">🗑️ Team löschen</button>
+        </form>
     </div>
 </div>
 </body>
