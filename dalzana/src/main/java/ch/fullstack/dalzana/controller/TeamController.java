@@ -1,17 +1,26 @@
 package ch.fullstack.dalzana.controller;
 
 import ch.fullstack.dalzana.model.RequestStatus;
-import ch.fullstack.dalzana.service.TeamService;
+import ch.fullstack.dalzana.model.TeamJoinRequest;
+import ch.fullstack.dalzana.model.TeamJoinRequestStatus;
 import ch.fullstack.dalzana.repo.AppUserRepository;
 import ch.fullstack.dalzana.repo.RequestRepository;
+import ch.fullstack.dalzana.repo.TeamJoinRequestRepository;
+import ch.fullstack.dalzana.service.EmailService;
 import ch.fullstack.dalzana.service.RequestService;
+import ch.fullstack.dalzana.service.TeamService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.beans.factory.annotation.Value;
 
+import java.time.LocalDateTime;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Controller
@@ -22,12 +31,24 @@ public class TeamController {
     private final AppUserRepository userRepository;
     private final RequestRepository requestRepository;
     private final RequestService requestService;
+    private final TeamJoinRequestRepository joinRequestRepository;
+    private final EmailService emailService;
+    
+    @Value("${app.base-url}")
+    private String appBaseUrl;
 
-    public TeamController(TeamService teamService, AppUserRepository userRepository, RequestRepository requestRepository, RequestService requestService) {
+    public TeamController(TeamService teamService,
+                          AppUserRepository userRepository,
+                          RequestRepository requestRepository,
+                          RequestService requestService,
+                          TeamJoinRequestRepository joinRequestRepository,
+                          EmailService emailService) {
         this.teamService = teamService;
         this.userRepository = userRepository;
         this.requestRepository = requestRepository;
         this.requestService = requestService;
+        this.joinRequestRepository = joinRequestRepository;
+        this.emailService = emailService;
     }
 
     @GetMapping("/create")
@@ -163,9 +184,179 @@ public class TeamController {
 
     @GetMapping("/{id}")
     public String detail(@PathVariable Long id, Model model, HttpSession session) {
-        model.addAttribute("team", teamService.findById(id));
+        var team = teamService.findById(id);
+        Long currentUserId = (Long) session.getAttribute("userId");
+
+        boolean isMember = false;
+        boolean joinRequestPending = false;
+        TeamJoinRequestStatus latestJoinRequestStatus = null;
+        if (currentUserId != null) {
+            isMember = team.getMembers().stream().anyMatch(m -> m.getId().equals(currentUserId));
+            joinRequestPending = joinRequestRepository.existsByTeamIdAndRequesterIdAndStatus(
+                    team.getId(), currentUserId, TeamJoinRequestStatus.PENDING);
+            latestJoinRequestStatus = joinRequestRepository
+                    .findTopByTeamIdAndRequesterIdOrderByCreatedAtDesc(team.getId(), currentUserId)
+                    .map(TeamJoinRequest::getStatus)
+                    .orElse(null);
+        }
+
+        model.addAttribute("team", team);
         model.addAttribute("currentUserRole", session.getAttribute("userRole"));
+        model.addAttribute("currentUserId", currentUserId);
+        model.addAttribute("isMember", isMember);
+        model.addAttribute("joinRequestPending", joinRequestPending);
+        model.addAttribute("joinRequestStatus", latestJoinRequestStatus);
         return "team-detail";
+    }
+
+    @PostMapping("/{teamId}/join-request")
+    public String requestJoin(@PathVariable Long teamId,
+                              HttpSession session,
+                              RedirectAttributes redirectAttributes,
+                              HttpServletRequest httpRequest) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Bitte zuerst einloggen.");
+            return "redirect:/login";
+        }
+
+        var team = teamService.findById(teamId);
+        var requester = userRepository.findById(userId).orElseThrow();
+
+        boolean isMember = team.getMembers().stream().anyMatch(m -> m.getId().equals(userId));
+        if (isMember) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Du bist bereits im Team.");
+            return "redirect:/teams/" + teamId;
+        }
+
+        boolean alreadyPending = joinRequestRepository.existsByTeamIdAndRequesterIdAndStatus(
+                teamId, userId, TeamJoinRequestStatus.PENDING);
+        if (alreadyPending) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Deine Beitrittsanfrage ist bereits offen.");
+            return "redirect:/teams/" + teamId;
+        }
+
+        String token = UUID.randomUUID().toString();
+        TeamJoinRequest joinRequest = new TeamJoinRequest(team, requester, token);
+        joinRequestRepository.save(joinRequest);
+
+        String approveLink = appBaseUrl + "/teams/join-requests/" + token + "/approve";
+        String rejectLink = appBaseUrl + "/teams/join-requests/" + token + "/reject";
+
+        String subject = "Beitrittsanfrage für Team: " + team.getName();
+        String htmlTemplate = 
+            "<html><body style=\"font-family: Arial, sans-serif; color: #333;\">" +
+            "<p>Hallo %s,</p>" +
+            "<p>%s möchte dem Team <strong>'%s'</strong> beitreten.</p>" +
+            "<div style=\"margin: 30px 0; text-align: center;\">" +
+            "<a href=\"%s\" style=\"display: inline-block; padding: 12px 30px; margin-right: 10px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;\">Zustimmen</a>" +
+            "<a href=\"%s\" style=\"display: inline-block; padding: 12px 30px; background-color: #dc3545; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;\">Ablehnen</a>" +
+            "</div>" +
+            "<p style=\"color: #666; font-size: 12px; margin-top: 30px;\">Viele Grüsse,<br>Dein DalZana Team</p>" +
+            "</body></html>";
+
+        team.getMembers().forEach(member -> {
+            String body = String.format(htmlTemplate, member.getName(), requester.getName(), team.getName(), approveLink, rejectLink);
+            emailService.sendHtmlNotification(member.getEmail(), subject, body);
+        });
+
+        redirectAttributes.addFlashAttribute("successMessage", "Beitrittsanfrage wurde gesendet.");
+        return "redirect:/teams/" + teamId;
+    }
+
+    @GetMapping("/join-requests/{token}/approve")
+    public String approveJoinRequest(@PathVariable String token,
+                                     HttpSession session,
+                                     RedirectAttributes redirectAttributes) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Bitte zuerst einloggen.");
+            return "redirect:/login";
+        }
+
+        var joinRequestOpt = joinRequestRepository.findByToken(token);
+        if (joinRequestOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Anfrage nicht gefunden.");
+            return "redirect:/home";
+        }
+
+        var joinRequest = joinRequestOpt.get();
+        var team = joinRequest.getTeam();
+
+        boolean isMember = team.getMembers().stream().anyMatch(m -> m.getId().equals(userId));
+        if (!isMember) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Nur Team-Mitglieder dürfen entscheiden.");
+            return "redirect:/home";
+        }
+
+        if (joinRequest.getStatus() != TeamJoinRequestStatus.PENDING) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Diese Anfrage wurde bereits bearbeitet.");
+            return "redirect:/teams/" + team.getId();
+        }
+
+        teamService.addMemberToTeam(team.getId(), joinRequest.getRequester().getId());
+        joinRequest.setStatus(TeamJoinRequestStatus.APPROVED);
+        joinRequest.setRespondedAt(LocalDateTime.now());
+        joinRequestRepository.save(joinRequest);
+
+        String subject = "Team-Beitritt bestätigt";
+        String htmlBody = 
+            "<html><body style=\"font-family: Arial, sans-serif; color: #333;\">" +
+            "<p>Hallo " + joinRequest.getRequester().getName() + ",</p>" +
+            "<p>Deine Anfrage für das Team <strong>'" + team.getName() + "'</strong> wurde angenommen.</p>" +
+            "<p style=\"color: #666; font-size: 12px; margin-top: 30px;\">Viele Grüsse,<br>Dein DalZana Team</p>" +
+            "</body></html>";
+        emailService.sendHtmlNotification(joinRequest.getRequester().getEmail(), subject, htmlBody);
+
+        redirectAttributes.addFlashAttribute("successMessage", "Anfrage bestätigt.");
+        return "redirect:/teams/" + team.getId();
+    }
+
+    @GetMapping("/join-requests/{token}/reject")
+    public String rejectJoinRequest(@PathVariable String token,
+                                    HttpSession session,
+                                    RedirectAttributes redirectAttributes) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Bitte zuerst einloggen.");
+            return "redirect:/login";
+        }
+
+        var joinRequestOpt = joinRequestRepository.findByToken(token);
+        if (joinRequestOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Anfrage nicht gefunden.");
+            return "redirect:/home";
+        }
+
+        var joinRequest = joinRequestOpt.get();
+        var team = joinRequest.getTeam();
+
+        boolean isMember = team.getMembers().stream().anyMatch(m -> m.getId().equals(userId));
+        if (!isMember) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Nur Team-Mitglieder dürfen entscheiden.");
+            return "redirect:/home";
+        }
+
+        if (joinRequest.getStatus() != TeamJoinRequestStatus.PENDING) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Diese Anfrage wurde bereits bearbeitet.");
+            return "redirect:/teams/" + team.getId();
+        }
+
+        joinRequest.setStatus(TeamJoinRequestStatus.REJECTED);
+        joinRequest.setRespondedAt(LocalDateTime.now());
+        joinRequestRepository.save(joinRequest);
+
+        String subject = "Team-Beitritt abgelehnt";
+        String htmlBody = 
+            "<html><body style=\"font-family: Arial, sans-serif; color: #333;\">" +
+            "<p>Hallo " + joinRequest.getRequester().getName() + ",</p>" +
+            "<p>Deine Anfrage für das Team <strong>'" + team.getName() + "'</strong> wurde abgelehnt.</p>" +
+            "<p style=\"color: #666; font-size: 12px; margin-top: 30px;\">Viele Grüsse,<br>Dein DalZana Team</p>" +
+            "</body></html>";
+        emailService.sendHtmlNotification(joinRequest.getRequester().getEmail(), subject, htmlBody);
+
+        redirectAttributes.addFlashAttribute("successMessage", "Anfrage abgelehnt.");
+        return "redirect:/teams/" + team.getId();
     }
 
     @PostMapping("/{teamId}/request/status")
