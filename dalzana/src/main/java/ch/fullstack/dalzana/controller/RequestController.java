@@ -4,6 +4,7 @@ package ch.fullstack.dalzana.controller;
 import ch.fullstack.dalzana.model.Request;
 import ch.fullstack.dalzana.model.RequestStatus;
 import ch.fullstack.dalzana.model.Skill;
+import ch.fullstack.dalzana.repo.TeamRepository;
 import ch.fullstack.dalzana.service.RequestService;
 import ch.fullstack.dalzana.service.TeamService;
 import jakarta.servlet.http.HttpSession;
@@ -12,7 +13,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/requests")
@@ -20,19 +23,42 @@ public class RequestController {
 
     private final RequestService requestService;
     private final TeamService teamService;
+    private final TeamRepository teamRepository;
 
-    public RequestController(RequestService requestService, TeamService teamService) {
+    public RequestController(RequestService requestService, TeamService teamService, TeamRepository teamRepository) {
         this.requestService = requestService;
         this.teamService = teamService;
+        this.teamRepository = teamRepository;
     }
 
     // Liste
     @GetMapping
     public String list(Model model, HttpSession session) {
-        model.addAttribute("requests", requestService.findAll());
+        var requests = requestService.findAll();
+        
+        // Erstelle eine Map mit Teams für jeden Request
+        Map<Long, List<?>> requestTeamsMap = new HashMap<>();
+        for (var request : requests) {
+            requestTeamsMap.put(request.getId(), teamRepository.findByRequestId(request.getId()));
+        }
+        
+        model.addAttribute("requests", requests);
+        model.addAttribute("requestTeamsMap", requestTeamsMap);
         model.addAttribute("skills", Skill.values());
         model.addAttribute("currentUserRole", session.getAttribute("userRole"));
         return "requests";
+    }
+
+    @GetMapping("/create")
+    public String createPage(Model model, HttpSession session, RedirectAttributes ra) {
+        String userRole = (String) session.getAttribute("userRole");
+        if (!"MANAGER".equals(userRole)) {
+            ra.addFlashAttribute("errorMessage", "❌ Nur Manager können Requests erstellen.");
+            return "redirect:/requests";
+        }
+        
+        model.addAttribute("skills", Skill.values());
+        return "request-create";
     }
 
     @PostMapping("/create")
@@ -63,8 +89,12 @@ public class RequestController {
 
     // Detail
     @GetMapping("/{id}")
-    public String detail(@PathVariable Long id, Model model) {
-        model.addAttribute("request", requestService.findById(id));
+    public String detail(@PathVariable Long id, Model model, HttpSession session) {
+        var request = requestService.findById(id);
+        var teams = teamRepository.findByRequestId(id);
+        model.addAttribute("request", request);
+        model.addAttribute("requestTeams", teams);
+        model.addAttribute("currentUserRole", session.getAttribute("userRole"));
         return "request-detail";
     }
     @GetMapping("/{id}/edit")
