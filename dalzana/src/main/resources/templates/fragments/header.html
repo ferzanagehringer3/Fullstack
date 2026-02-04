@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html lang="de" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
 </head>
+
 <body>
     <header th:fragment="header" class="app-header">
         <style>
@@ -150,20 +152,22 @@
 
         <nav>
             <a href="/home" class="logo">🚀 Dalzana</a>
-            
+
             <div class="nav-center">
                 <a href="/home" th:href="@{/home}">Teams</a>
                 <a href="/requests" th:href="@{/requests}">Anfragen</a>
-                <a href="/profile" th:href="@{/profile}">Profil</a>
             </div>
 
             <div class="nav-right">
-                <div class="user-info">
-                    <span class="user-name" th:text="${userName}">Benutzer</span>
-                </div>
+                <a href="/profile" th:href="@{/profile}" style="text-decoration: none;">
+                    <div class="user-info">
+                        <span class="user-name" th:text="${userName}">Benutzer</span>
+                    </div>
+                </a>
                 <a href="/logout" th:href="@{/logout}" class="logout-btn">Logout</a>
             </div>
         </nav>
     </header>
 </body>
+
 </html>

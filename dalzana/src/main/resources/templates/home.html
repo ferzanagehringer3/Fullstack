@@ -16,12 +16,17 @@
     }
 
     .app {
-      height: 100vh;
+      height: calc(100vh - 64px);
       display: flex;
+      overflow: hidden;
+
     }
 
     /* SIDEBAR */
     .left {
+      position: sticky;
+      top: 64px;
+      height: calc(100vh - 64px);
       flex: 0 0 260px;
       width: 260px;
       min-width: 260px;
@@ -147,6 +152,20 @@
       animation: pulse 1s infinite;
     }
 
+    /* Wrapper um den Chat: nimmt den restlichen Platz in .main ein */
+    .add-member {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+    }
+
+    /* Chat ist der einzige Scrollbereich */
+    .add-member .chat {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+    }
+
     /* MAIN / CHAT */
     .main {
       flex: 1;
@@ -155,7 +174,8 @@
       flex-direction: column;
       background: #f6f7fb;
       min-width: 0;
-      /* wichtig gegen overflow in flex layouts */
+      height: 100%;
+      overflow: hidden;
     }
 
     .header {
@@ -244,6 +264,7 @@
       border-radius: 8px;
       max-width: 50%;
       word-wrap: break-word;
+      white-space: pre-wrap;
     }
 
     .msg.sent {
@@ -285,7 +306,9 @@
       display: flex;
       gap: 10px;
       border-top: 1px solid #e5e7eb;
-      padding-top: 16px;
+      padding: 16px 24px;
+      background: #fff;
+      /* KEIN sticky -> nimmt Platz ein und schiebt den Chat nach oben */
     }
 
     input[type="text"] {
@@ -298,6 +321,25 @@
     }
 
     input[type="text"]:focus {
+      outline: none;
+      border-color: #3b82f6;
+    }
+
+    .composer textarea {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      min-width: 0;
+      min-height: 42px;
+      max-height: 200px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .composer textarea:focus {
       outline: none;
       border-color: #3b82f6;
     }
@@ -423,76 +465,7 @@
 
   <div class="app">
     <!-- LEFT: Teams -->
-    <div class="left">
-      <div class="sidebar-head">
-        <h3>Menue</h3>
-        <button id="toggleSidebarBtn" class="toggle-sidebar-btn" title="Sidebar ein/aus"
-          aria-label="Sidebar ein/aus">☰</button>
-      </div>
-
-      <div class="sidebar-content">
-
-        <div class="accordion" id="sidebarAccordion">
-
-          <!-- TEAMS -->
-          <div class="acc-item open" data-acc="teams">
-            <button type="button" class="acc-trigger" aria-expanded="true" aria-controls="acc-teams">
-              <span>Teams</span>
-              <span class="acc-icon">▾</span>
-            </button>
-
-            <div class="acc-panel" id="acc-teams">
-              <!-- Create Team Button (nur hier drin) -->
-              <div th:if="${currentUserRole == 'MANAGER'}" style="margin: 12px 0 16px 0;">
-                <a href="/teams/create" style="text-decoration: none;">
-                  <button class="create-btn">+ Neues Team erstellen</button>
-                </a>
-              </div>
-
-              <!-- Team List -->
-              <div class="teams" id="teamList">
-                <div th:if="${#lists.isEmpty(teams)}">Keine Teams vorhanden</div>
-
-                <div th:each="t : ${teams}" class="team-row">
-                  <button class="team" th:data-team-id="${t.id}" th:data-team-name="${t.name}"
-                    th:data-request-title="${t.request?.title}"
-                    th:data-team-members="${#strings.listJoin(t.members.![name], ', ')}">
-                    <span th:text="${t.name}">Team</span>
-                    <span th:if="${t.request}" style="color:#6b7280;font-size:12px;display:block;margin-top:4px;"
-                      th:text="'Request: ' + ${t.request.title}">Request</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- REQUESTS -->
-          <div class="acc-item" data-acc="requests">
-            <button type="button" class="acc-trigger" aria-expanded="false" aria-controls="acc-requests">
-              <span>Requests</span>
-              <span class="acc-icon">▾</span>
-            </button>
-
-            <div class="acc-panel" id="acc-requests">
-              <div class="requests" id="requestList">
-                <div th:if="${requests == null or #lists.isEmpty(requests)}">Keine Requests vorhanden</div>
-
-                <div th:each="r : ${requests}" class="request-row">
-                  <!-- Wenn du eine Detailseite hast, kannst du das auch als <a> machen -->
-                  <div class="request-item">
-                    <div class="request-title" th:text="${r.title}">Request Titel</div>
-                    <!-- optional: weitere Infos, falls vorhanden -->
-                    <div class="request-meta" th:if="${r.status}" th:text="${r.status}">Status</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div><!-- /accordion -->
-
-      </div><!-- /sidebar-content -->
-    </div>
+    <div th:replace="~{fragments/sidebar}"></div>
 
     <!-- CENTER: Chat -->
     <div class="main">
@@ -516,9 +489,6 @@
         </div>
 
         <div class="header-actions">
-          <a id="profileLink" th:href="@{/profile}" style="text-decoration: none;">
-            <button id="profileBtn">Mein Profil</button>
-          </a>
 
           <a id="filesLink" th:if="${!#lists.isEmpty(teams)}" th:href="@{/teams/{teamId}/files(teamId=${teams[0].id})}"
             style="text-decoration: none;">
@@ -526,9 +496,6 @@
           </a>
           <button id="filesBtn" th:if="${#lists.isEmpty(teams)}" disabled>Files</button>
 
-          <a id="logoutLink" th:href="@{/logout}" style="text-decoration: none;">
-            <button id="logoutBtn">Logout</button>
-          </a>
         </div>
       </div>
 
@@ -539,7 +506,7 @@
       </div>
 
       <form class="composer" id="chatForm" th:if="${!#lists.isEmpty(teams)}">
-        <input id="messageInput" type="text" placeholder="Type a message..." />
+        <textarea id="messageInput" placeholder="Type a message..." rows="1"></textarea>
         <button type="submit">Send</button>
       </form>
 
@@ -626,7 +593,13 @@
 
         if (response.ok) {
           input.value = "";
-          loadMessages();
+          input.style.height = 'auto'; // Reset textarea height
+          await loadMessages();
+          // Ensure scroll to bottom after messages loaded
+          setTimeout(() => {
+            const chatBox = document.getElementById("chatBox");
+            if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+          }, 100);
         }
       } catch (error) {
         console.error('Error sending message:', error);
@@ -644,14 +617,15 @@
         const chatBox = document.getElementById("chatBox");
         if (!chatBox) return;
 
+        // Store scroll position to check if user was at bottom
+        const wasAtBottom = chatBox.scrollHeight - chatBox.scrollTop <= chatBox.clientHeight + 50;
+
         chatBox.innerHTML = '';
 
         messages.forEach(msg => {
           const msgDiv = document.createElement("div");
           const isSent = (msg.senderName || '').trim().toLowerCase() === (currentUserName || '').trim().toLowerCase();
 
-          // NOTE: deine alte Logik war vertauscht. Wenn du "sent" rechts (blau) willst,
-          // dann ist sent = isSent. Ich lasse es "korrekt" so:
           msgDiv.className = `msg ${isSent ? 'sent' : 'received'}`;
 
           let html = '';
@@ -665,7 +639,13 @@
         });
 
         teamLastMessageCount[currentTeamId] = messages.length;
-        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // Scroll to bottom if user was already at bottom or on first load
+        if (wasAtBottom || messages.length > 0) {
+          requestAnimationFrame(() => {
+            chatBox.scrollTop = chatBox.scrollHeight;
+          });
+        }
       } catch (error) {
         console.error('Error loading messages:', error);
       }
@@ -776,12 +756,12 @@
       const accordion = document.getElementById("sidebarAccordion");
       if (accordion) {
         const triggers = accordion.querySelectorAll(".acc-trigger");
-        
+
         triggers.forEach(trigger => {
           trigger.addEventListener("click", () => {
             const item = trigger.closest(".acc-item");
             if (!item) return;
-            
+
             // Toggle current item
             item.classList.toggle("open");
             const isOpen = item.classList.contains("open");
