@@ -78,6 +78,21 @@
         </form>
     </div>
 
+    <div th:if="${currentUserId != null && !isMember}" style="margin-top: 16px;">
+        <form th:if="${!joinRequestPending}" th:action="@{/teams/{id}/join-request(id=${team.id})}" method="post">
+            <button type="submit" class="btn btn-primary">🤝 Team beitreten anfragen</button>
+        </form>
+        <div th:if="${joinRequestPending}" style="color: #92400e; background: #fef3c7; padding: 10px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;">
+            ⏳ Deine Beitrittsanfrage ist ausstehend.
+        </div>
+        <div th:if="${joinRequestStatus != null && joinRequestStatus.name() == 'REJECTED'}" style="margin-top: 10px; color: #991b1b; background: #fee2e2; padding: 10px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;">
+            ❌ Deine Beitrittsanfrage wurde abgelehnt.
+        </div>
+        <div th:if="${joinRequestStatus != null && joinRequestStatus.name() == 'APPROVED'}" style="margin-top: 10px; color: #065f46; background: #d1fae5; padding: 10px 12px; border-radius: 6px; font-size: 13px; font-weight: 600;">
+            ✅ Deine Beitrittsanfrage wurde angenommen.
+        </div>
+    </div>
+
     <p>Mitglieder</p>
 
     <div class="members">
