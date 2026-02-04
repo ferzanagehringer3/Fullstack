@@ -1,8 +1,11 @@
 package ch.fullstack.dalzana.controller;
 
 import ch.fullstack.dalzana.model.TeamFile;
+import ch.fullstack.dalzana.model.AppUser;
 import ch.fullstack.dalzana.repo.TeamFileRepository;
 import ch.fullstack.dalzana.repo.TeamRepository;
+import ch.fullstack.dalzana.repo.AppUserRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,11 +24,34 @@ public class TeamFileController {
 
     private final TeamRepository teamRepo;
     private final TeamFileRepository fileRepo;
+    private final AppUserRepository userRepository;
 
     public TeamFileController(TeamRepository teamRepo,
-                              TeamFileRepository fileRepo) {
+                              TeamFileRepository fileRepo,
+                              AppUserRepository userRepository) {
         this.teamRepo = teamRepo;
         this.fileRepo = fileRepo;
+        this.userRepository = userRepository;
+    }
+
+    @ModelAttribute
+    public void addCommonAttributes(HttpSession session, Model model) {
+        Long userId = (Long) session.getAttribute("userId");
+        
+        // Immer den aktuellen User aus der DB holen
+        if (userId != null) {
+            var userOpt = userRepository.findById(userId);
+            if (userOpt.isPresent()) {
+                AppUser user = userOpt.get();
+                model.addAttribute("userName", user.getName());
+                model.addAttribute("currentUserRole", user.getRole().name());
+                
+                // Profilbild hinzufügen (ist bereits als String gespeichert)
+                if (user.getProfilePicture() != null && !user.getProfilePicture().isEmpty()) {
+                    model.addAttribute("userProfilePicture", user.getProfilePicture());
+                }
+            }
+        }
     }
 
     @GetMapping

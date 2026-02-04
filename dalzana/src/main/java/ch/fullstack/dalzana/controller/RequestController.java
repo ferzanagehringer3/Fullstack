@@ -5,7 +5,9 @@ import ch.fullstack.dalzana.model.Request;
 import ch.fullstack.dalzana.model.RequestStatus;
 import ch.fullstack.dalzana.model.Skill;
 import ch.fullstack.dalzana.model.Team;
+import ch.fullstack.dalzana.model.AppUser;
 import ch.fullstack.dalzana.repo.TeamRepository;
+import ch.fullstack.dalzana.repo.AppUserRepository;
 import ch.fullstack.dalzana.service.RequestService;
 import ch.fullstack.dalzana.service.TeamService;
 import jakarta.servlet.http.HttpSession;
@@ -26,17 +28,42 @@ public class RequestController {
     private final RequestService requestService;
     private final TeamService teamService;
     private final TeamRepository teamRepository;
+    private final AppUserRepository userRepository;
 
-    public RequestController(RequestService requestService, TeamService teamService, TeamRepository teamRepository) {
+    public RequestController(RequestService requestService, TeamService teamService, TeamRepository teamRepository, AppUserRepository userRepository) {
         this.requestService = requestService;
         this.teamService = teamService;
         this.teamRepository = teamRepository;
+        this.userRepository = userRepository;
+    }
+
+    @ModelAttribute
+    public void addCommonAttributes(HttpSession session, Model model) {
+        Long userId = (Long) session.getAttribute("userId");
+        
+        // Immer den aktuellen User aus der DB holen
+        if (userId != null) {
+            var userOpt = userRepository.findById(userId);
+            if (userOpt.isPresent()) {
+                AppUser user = userOpt.get();
+                model.addAttribute("userName", user.getName());
+                model.addAttribute("currentUserRole", user.getRole().name());
+                
+                // Profilbild hinzufügen (ist bereits als String gespeichert)
+                if (user.getProfilePicture() != null && !user.getProfilePicture().isEmpty()) {
+                    model.addAttribute("userProfilePicture", user.getProfilePicture());
+                }
+            }
+        }
     }
 
     // Liste
     @GetMapping
     public String list(Model model, HttpSession session) {
         var requests = requestService.findAll();
+        
+        // Sortiere nach ID absteigend (neueste zuerst)
+        requests.sort((a, b) -> b.getId().compareTo(a.getId()));
         
         // Erstelle eine Map mit Teams für jeden Request
         Map<Long, List<?>> requestTeamsMap = new HashMap<>();

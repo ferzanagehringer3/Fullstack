@@ -59,10 +59,10 @@
                 <div th:if="${requests == null or #lists.isEmpty(requests)}">Keine Requests vorhanden</div>
 
                 <div th:each="r : ${requests}" class="request-row">
-                  <div class="request-item">
+                  <a class="request-item" th:href="@{/requests/{id}(id=${r.id})}" style="text-decoration: none; color: inherit; display: block;">
                     <div class="request-title" th:text="${r.title}">Request Titel</div>
                     <div class="request-meta" th:if="${r.status}" th:text="${r.status}">Status</div>
-                  </div>
+                  </a>
                 </div>
               </div>
             </div>
