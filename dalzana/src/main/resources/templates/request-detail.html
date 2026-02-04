@@ -26,6 +26,23 @@
     <a class="btn btn-secondary" href="/requests">← Zurück</a>
 
     <h1 th:text="${request.title}">Request</h1>
+    
+    <!-- Status Badge -->
+    <div style="margin-top: 16px; margin-bottom: 16px;">
+        <span th:if="${request.status.name() == 'NEW'}" 
+              style="display: inline-block; background: #dbeafe; color: #1e40af; padding: 6px 14px; border-radius: 16px; font-size: 13px; font-weight: 600;">
+            🆕 NEU
+        </span>
+        <span th:if="${request.status.name() == 'IN_PROGRESS'}" 
+              style="display: inline-block; background: #fef3c7; color: #92400e; padding: 6px 14px; border-radius: 16px; font-size: 13px; font-weight: 600;">
+            ⚙️ IN BEARBEITUNG
+        </span>
+        <span th:if="${request.status.name() == 'DONE'}" 
+              style="display: inline-block; background: #d1fae5; color: #065f46; padding: 6px 14px; border-radius: 16px; font-size: 13px; font-weight: 600;">
+            ✅ ERLEDIGT
+        </span>
+    </div>
+    
     <p th:text="${request.description}">Beschreibung</p>
 
     <div th:if="${!#sets.isEmpty(request.requiredSkills)}">

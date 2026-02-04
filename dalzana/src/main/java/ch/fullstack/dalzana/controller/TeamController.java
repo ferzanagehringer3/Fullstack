@@ -1,8 +1,10 @@
 package ch.fullstack.dalzana.controller;
 
+import ch.fullstack.dalzana.model.RequestStatus;
 import ch.fullstack.dalzana.service.TeamService;
 import ch.fullstack.dalzana.repo.AppUserRepository;
 import ch.fullstack.dalzana.repo.RequestRepository;
+import ch.fullstack.dalzana.service.RequestService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,11 +21,13 @@ public class TeamController {
     private final TeamService teamService;
     private final AppUserRepository userRepository;
     private final RequestRepository requestRepository;
+    private final RequestService requestService;
 
-    public TeamController(TeamService teamService, AppUserRepository userRepository, RequestRepository requestRepository) {
+    public TeamController(TeamService teamService, AppUserRepository userRepository, RequestRepository requestRepository, RequestService requestService) {
         this.teamService = teamService;
         this.userRepository = userRepository;
         this.requestRepository = requestRepository;
+        this.requestService = requestService;
     }
 
     @GetMapping("/create")
@@ -158,8 +162,29 @@ public class TeamController {
     }
 
     @GetMapping("/{id}")
-    public String detail(@PathVariable Long id, Model model) {
+    public String detail(@PathVariable Long id, Model model, HttpSession session) {
         model.addAttribute("team", teamService.findById(id));
+        model.addAttribute("currentUserRole", session.getAttribute("userRole"));
         return "team-detail";
+    }
+
+    @PostMapping("/{teamId}/request/status")
+    public String updateRequestStatus(@PathVariable Long teamId,
+                                      @RequestParam RequestStatus status,
+                                      RedirectAttributes redirectAttributes) {
+        try {
+            var team = teamService.findById(teamId);
+            if (team.getRequest() != null) {
+                var request = team.getRequest();
+                request.setStatus(status);
+                requestService.save(request);
+                redirectAttributes.addFlashAttribute("successMessage", "✅ Status aktualisiert.");
+            } else {
+                redirectAttributes.addFlashAttribute("errorMessage", "❌ Kein Request zugeordnet.");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "❌ Fehler beim Aktualisieren: " + e.getMessage());
+        }
+        return "redirect:/teams/" + teamId;
     }
 }

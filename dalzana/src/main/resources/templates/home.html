@@ -26,11 +26,6 @@
       display: none;
       animation: pulse 1s infinite;
     }
-    .teams .team-actions { display: flex; gap: 6px; }
-    .teams .team-actions button { padding: 6px 10px; font-size: 12px; background: #fff; border: 1px solid #e5e7eb; border-radius: 4px; cursor: pointer; transition: all 0.2s; color: #374151; }
-    .teams .team-actions button:hover { background: #f9fafb; border-color: #d1d5db; }
-    .teams .team-actions button[type="submit"] { background: #dc3545; color: #fff; border-color: #dc3545; }
-    .teams .team-actions button[type="submit"]:hover { background: #c82333; }
     .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; padding-bottom: 16px; gap: 16px; background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 16px; }
     .team-title { display: flex; flex-direction: column; gap: 6px; }
     .team-title h2 { margin: 0; font-size: 20px; color: #111827; }
@@ -88,18 +83,11 @@
           <button class="team"
                   th:data-team-id="${t.id}"
                   th:data-team-name="${t.name}"
-                  th:data-team-members="${#strings.listJoin(t.members.![name], ', ')}"
-                  th:text="${t.name}">
-            Team
+                  th:data-request-title="${t.request?.title}"
+                  th:data-team-members="${#strings.listJoin(t.members.![name], ', ')}">
+            <span th:text="${t.name}">Team</span>
+            <span th:if="${t.request}" style="color: #6b7280; font-size: 12px; display: block; margin-top: 4px;" th:text="'Request: ' + ${t.request.title}">Request</span>
           </button>
-          <div th:if="${currentUserRole == 'MANAGER'}" class="team-actions">
-            <a th:href="@{/teams/{id}/edit(id=${t.id})}" style="text-decoration:none;">
-              <button type="button">Bearbeiten</button>
-            </a>
-            <form th:action="@{/teams/{id}/delete(id=${t.id})}" method="post" onsubmit="return confirm('Team wirklich löschen?');">
-              <button type="submit" style="background:#dc3545;color:#fff;border:none;border-radius:4px;">Löschen</button>
-            </form>
-          </div>
         </div>
       </div>
     </div>
@@ -111,7 +99,10 @@
 
       <div class="header">
         <div class="team-title">
-          <h2 id="teamTitle" th:if="${!#lists.isEmpty(teams)}" th:text="${teams[0].name}">Team</h2>
+          <h2 id="teamTitle" th:if="${!#lists.isEmpty(teams)}">
+            <span th:text="${teams[0].name}">Team</span>
+            <span th:if="${teams[0].request}" style="color: #6b7280; font-size: 16px;" th:text="' - Request: ' + ${teams[0].request.title}"></span>
+          </h2>
           <h2 id="teamTitle" th:if="${#lists.isEmpty(teams)}">Kein Team</h2>
 
           <div class="team-members" th:if="${!#lists.isEmpty(teams)}">
@@ -189,11 +180,16 @@
       const teamName = btn.dataset.teamName;
       const teamId = btn.dataset.teamId;
       const teamMembers = btn.dataset.teamMembers || '';
+      const requestTitle = btn.dataset.requestTitle || '';
 
       currentTeamId = teamId;
 
       if (teamName) {
-        document.getElementById("teamTitle").textContent = teamName;
+        const titleElement = document.getElementById("teamTitle");
+        titleElement.innerHTML = teamName;
+        if (requestTitle) {
+          titleElement.innerHTML += '<span style="color: #6b7280; font-size: 16px;"> - Request: ' + requestTitle + '</span>';
+        }
       }
 
       const filesLink = document.getElementById("filesLink");
