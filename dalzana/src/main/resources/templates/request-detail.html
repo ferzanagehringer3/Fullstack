@@ -52,8 +52,28 @@
         </div>
     </div>
 
-    <div style="margin-top:20px;">
+    <div th:if="${!#lists.isEmpty(requestTeams)}">
+        <h4>Zugeordnete Teams</h4>
+        <div style="border: 1px solid #e5e7eb; border-radius: 6px; overflow: hidden;">
+            <div th:each="team : ${requestTeams}" style="padding: 12px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                <a th:href="@{/teams/{id}(id=${team.id})}" th:text="${team.name}" style="color: #3b82f6; text-decoration: none; font-weight: 500;"></a>
+                <span th:if="${team.status.name() == 'PROPOSED'}" style="background: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: 500;">📋 VORGESCHLAGEN</span>
+                <span th:if="${team.status.name() == 'CONFIRMED'}" style="background: #fef3c7; color: #92400e; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: 500;">✓ BESTÄTIGT</span>
+                <span th:if="${team.status.name() == 'COMPLETED'}" style="background: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 8px; font-size: 12px; font-weight: 500;">✅ ABGESCHLOSSEN</span>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(requestTeams)}" style="margin-top:20px;">
         <a class="btn btn-primary" th:href="@{/teams/create(requestId=${request.id})}">Team erstellen</a>
+    </div>
+
+    <!-- Manager Actions -->
+    <div th:if="${currentUserRole == 'MANAGER'}" style="margin-top: 24px; display: flex; gap: 12px;">
+        <a class="btn btn-primary" th:href="@{/requests/{id}/edit(id=${request.id})}" style="text-decoration: none;">✏️ Bearbeiten</a>
+        <form method="POST" th:action="@{/requests/{id}/delete(id=${request.id})}" style="margin: 0;" onsubmit="return confirm('Request wirklich löschen?');">
+            <button class="btn" type="submit" style="background: #dc3545; color: #fff;">🗑️ Löschen</button>
+        </form>
     </div>
 </div>
 </body>
