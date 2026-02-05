@@ -18,10 +18,9 @@ git push origin main
 ### 3. **Web Service auf Render erstellen**
 - Klicke auf "New +" → "Web Service"
 - Verbinde dein GitHub Repository
-- **Build & Start Settings**:
-  - **Build Command**: `./mvnw clean package -DskipTests`
-  - **Start Command**: `java -Dserver.port=${PORT} -Dfile.encoding=UTF-8 -jar target/dalzana-0.0.1-SNAPSHOT.jar`
-  - **Region**: Choose the one closest to your users
+- **Runtime**: Wähle **Docker** (Java ist in deiner Auswahl nicht sichtbar)
+- **Build & Start Settings**: bei Docker leer lassen (Render baut aus der Dockerfile)
+- **Region**: Wähle die Region nahe bei deinen Nutzern
 
 ### 4. **Environment Variables konfigurieren**
 Füge in Render diese Umgebungsvariablen ein:
@@ -42,7 +41,7 @@ postgresql://user123:pwd456@dpg-xyz.postgres.render.com:5432/dalzana_db
 ```
 
 ### 5. **Deploy starten**
-- Render startet automatisch den Build
+- Render startet automatisch den Docker Build
 - Warte auf "Deploy live" 
 - App läuft auf: `https://your-app-name.onrender.com`
 
