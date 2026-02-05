@@ -1,38 +1,56 @@
 package ch.fullstack.dalzana.service;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import com.sendgrid.*;
+import com.sendgrid.helpers.mail.Mail;
+import com.sendgrid.helpers.mail.objects.Content;
+import com.sendgrid.helpers.mail.objects.Email;
+import java.io.IOException;
 
 @Service
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    private final String sendGridApiKey;
     private final String fromAddress;
+    private final boolean sendGridEnabled;
 
-    public EmailService(JavaMailSender mailSender,
+    public EmailService(@Value("${sendgrid.api.key:}") String sendGridApiKey,
                         @Value("${spring.mail.username}") String fromAddress) {
-        this.mailSender = mailSender;
+        this.sendGridApiKey = sendGridApiKey;
         this.fromAddress = fromAddress;
+        this.sendGridEnabled = sendGridApiKey != null && !sendGridApiKey.isBlank();
+        
+        if (!sendGridEnabled) {
+            System.out.println("WARNING: SendGrid API Key nicht konfiguriert. E-Mails werden nicht versendet.");
+        }
     }
 
     public void sendNotification(String to, String subject, String text) {
+        if (!sendGridEnabled) {
+            System.out.println("E-Mail wird nicht versendet (SendGrid nicht konfiguriert): " + to + " - " + subject);
+            return;
+        }
+        
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setTo(to);
-            message.setSubject(subject);
-            message.setText(text);
-            if (fromAddress != null && !fromAddress.isBlank()) {
-                message.setFrom(fromAddress);
-            }
+            Email from = new Email(fromAddress);
+            Email toEmail = new Email(to);
+            Content content = new Content("text/plain", text);
+            Mail mail = new Mail(from, subject, toEmail, content);
+
+            SendGrid sg = new SendGrid(sendGridApiKey);
+            Request request = new Request();
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
             
-            mailSender.send(message);
-        } catch (Exception e) {
-            // Log error but don't fail the entire operation
+            Response response = sg.api(request);
+            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
+                System.out.println("E-Mail erfolgreich versendet an: " + to);
+            } else {
+                System.err.println("SendGrid Fehler (" + response.getStatusCode() + "): " + response.getBody());
+            }
+        } catch (IOException e) {
             System.err.println("Failed to send email to " + to + ": " + e.getMessage());
         }
     }
@@ -54,18 +72,30 @@ public class EmailService {
     }
 
     public void sendHtmlNotification(String to, String subject, String htmlBody) {
+        if (!sendGridEnabled) {
+            System.out.println("HTML E-Mail wird nicht versendet (SendGrid nicht konfiguriert): " + to + " - " + subject);
+            return;
+        }
+        
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(htmlBody, true);
-            if (fromAddress != null && !fromAddress.isBlank()) {
-                helper.setFrom(fromAddress);
-            }
+            Email from = new Email(fromAddress);
+            Email toEmail = new Email(to);
+            Content content = new Content("text/html", htmlBody);
+            Mail mail = new Mail(from, subject, toEmail, content);
+
+            SendGrid sg = new SendGrid(sendGridApiKey);
+            Request request = new Request();
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
             
-            mailSender.send(message);
-        } catch (MessagingException e) {
+            Response response = sg.api(request);
+            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
+                System.out.println("HTML E-Mail erfolgreich versendet an: " + to);
+            } else {
+                System.err.println("SendGrid HTML Fehler (" + response.getStatusCode() + "): " + response.getBody());
+            }
+        } catch (IOException e) {
             System.err.println("Failed to send HTML email to " + to + ": " + e.getMessage());
         }
     }
