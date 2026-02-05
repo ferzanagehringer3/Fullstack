@@ -23,7 +23,8 @@ public class AppUser {
     @Column(nullable = false)
     private role role;
 
-    @Column(columnDefinition = "LONGTEXT")
+    @Lob
+    @Column
     private String profilePicture;
 
     @JsonIgnore
