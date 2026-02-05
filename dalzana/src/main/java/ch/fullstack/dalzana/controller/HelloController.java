@@ -145,9 +145,9 @@ public class HelloController {
     }
 
     @PostMapping("/profile/update")
-    public String updateProfile(@RequestParam String name,
-            @RequestParam String email,
-            @RequestParam String roleParam,
+    public String updateProfile(@RequestParam(required = false) String name,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String roleParam,
             @RequestParam(value = "skills", required = false) String[] skills,
             HttpSession session,
             RedirectAttributes ra) {
