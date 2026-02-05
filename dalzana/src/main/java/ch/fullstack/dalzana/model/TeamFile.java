@@ -23,8 +23,7 @@ public class TeamFile {
     @Column(nullable=false)
     private long sizeBytes;
 
-    @Lob
-    @Column(nullable=false, columnDefinition = "LONGBLOB")
+    @Column(nullable=false, columnDefinition = "bytea")
     private byte[] fileData;
 
     @Column(nullable=false)
