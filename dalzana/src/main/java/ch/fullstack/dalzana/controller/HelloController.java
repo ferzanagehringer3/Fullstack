@@ -160,9 +160,15 @@ public class HelloController {
             return "redirect:/login";
 
         try {
-            user.setName(name.trim());
-            user.setEmail(email.trim());
-            user.setRole(role.valueOf(roleParam.trim()));
+            if (name != null && !name.trim().isEmpty()) {
+                user.setName(name.trim());
+            }
+            if (email != null && !email.trim().isEmpty()) {
+                user.setEmail(email.trim());
+            }
+            if (roleParam != null && !roleParam.trim().isEmpty()) {
+                user.setRole(role.valueOf(roleParam.trim()));
+            }
 
             Set<Skill> skillSet = EnumSet.noneOf(Skill.class);
             if (skills != null) {
