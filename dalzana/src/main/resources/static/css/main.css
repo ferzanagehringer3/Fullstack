@@ -27,8 +27,8 @@ body {
   --border: #e5e7eb;
   --text: #111827;
   --text-muted: #6b7280;
-  --primary: #3b82f6;
-  --primary-hover: #2563eb;
+  --primary: #0f766e;
+  --primary-hover: #0b5f58;
   --danger: #dc3545;
   --danger-hover: #c82333;
   --shadow-sm: 0 2px 8px rgba(17, 24, 39, 0.08);
@@ -69,13 +69,25 @@ a {
 }
 
 .btn-secondary {
-  background: #f3f4f6;
-  color: #374151;
-  border-color: var(--border);
+  background: #ecfdfb;
+  color: #0f766e;
+  border-color: #99f6e4;
 }
 
 .btn-secondary:hover {
-  background: #e5e7eb;
+  background: #ccfbf1;
+  border-color: #5eead4;
+}
+
+.btn-tertiary {
+  background: transparent;
+  color: var(--primary);
+  border-color: transparent;
+}
+
+.btn-tertiary:hover {
+  background: #f0fdfa;
+  color: var(--primary-hover);
 }
 
 .btn-danger {

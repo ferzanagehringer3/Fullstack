@@ -23,7 +23,7 @@
 <body>
 <div th:insert="~{fragments/header}"></div>
 <div class="container">
-    <a class="btn btn-secondary" href="/requests" onclick="if (document.referrer) { window.location = document.referrer; return false; }">← Zurück</a>
+    <a class="btn btn-tertiary" href="/requests" onclick="if (document.referrer) { window.location = document.referrer; return false; }">← Zurück</a>
 
     <h1 th:text="${request.title}">Request</h1>
     
