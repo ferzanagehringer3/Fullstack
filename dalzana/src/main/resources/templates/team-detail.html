@@ -68,8 +68,8 @@
         </div>
         
         <!-- Status ändern -->
-        <form th:action="@{/teams/{teamId}/request/status(teamId=${team.id})}" method="post" style="margin-top: 12px;">
-            <select name="status" style="padding: 6px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px; margin-right: 8px;">
+        <form th:action="@{/teams/{teamId}/request/status(teamId=${team.id})}" method="post" style="margin-top: 12px; display: flex; gap: 12px;">
+            <select name="status" style="padding: 6px 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 13px;">
                 <option value="NEW" th:selected="${team.request.status.name() == 'NEW'}">NEU</option>
                 <option value="IN_PROGRESS" th:selected="${team.request.status.name() == 'IN_PROGRESS'}">IN BEARBEITUNG</option>
                 <option value="DONE" th:selected="${team.request.status.name() == 'DONE'}">ERLEDIGT</option>
