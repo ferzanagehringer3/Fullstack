@@ -44,6 +44,9 @@ Die Konzeption, das Vorgehen sowie die Umsetzungsschritte wurden jedoch gemeinsa
 
 Nach dem erfolgreichen Grundsetup wurde die weitere Entwicklung zunehmend aufgeteilt, sodass beide Teammitglieder eigenständig an einzelnen Features und Komponenten gearbeitet haben.
 
+#### Arbeitszeiten
+
+09:00 Uhr - 22:30 Uhr
 
 ### Durchgeführte Arbeiten
 
@@ -62,6 +65,10 @@ Nach dem erfolgreichen Grundsetup wurde die weitere Entwicklung zunehmend aufget
 
 ### Übersicht
 Starke Weiterentwicklung von Backend, Frontend und Kernfunktionen.
+
+#### Arbeitszeiten
+
+09:00 Uhr - 20:00 Uhr
 
 ### Durchgeführte Arbeiten
 
@@ -89,6 +96,10 @@ Starke Weiterentwicklung von Backend, Frontend und Kernfunktionen.
 ### Übersicht
 Feinschliff, Erweiterungen und Stabilisierung der Anwendung.
 
+#### Arbeitszeiten
+
+09:00 Uhr - 20:00 Uhr
+
 ### Durchgeführte Arbeiten
 
 | Aufgabe / Tätigkeit                                         | Verantwortlich |
@@ -104,6 +115,49 @@ Feinschliff, Erweiterungen und Stabilisierung der Anwendung.
 
 ---
 
+## 📅 05.02.2026
+
+### Übersicht
+Deployment-Tag: Vorbereitung und Durchführung des Deployments der Anwendung auf Render sowie Behebung deploy-spezifischer Probleme.
+
+#### Arbeitszeiten
+
+16:30 Uhr – 21:00 Uhr
+
+### Durchgeführte Arbeiten
+
+| Aufgabe / Tätigkeit                                                     | Verantwortlich |
+|-------------------------------------------------------------------------|----------------|
+| Vorbereitung der Anwendung für das Deployment auf Render                | Ferzana & Dalina       |
+| Umstellung / Anpassung der Datenbank für PostgreSQL (Deployment)        | Ferzana & Dalina       |
+| Konfiguration von Environment-Variablen und Gateway-Einstellungen       | Ferzana  & Dalina     |
+| Deployment-Versuche und Analyse von Deployment-Fehlern                  | Ferzana  & Dalina      |
+| Behebung von E-Mail- und Notification-Problemen im Deployment-Kontext   | Ferzana        |
+| Allgemeine Bugfixes im Zusammenhang mit dem Deployment                   | Ferzana    & Dalina    |
+
+
+
+## 📅 06.02.2026
+
+### Übersicht
+Abschlussarbeiten am Projekt: Design-Feinschliff, Accessibility-Verbesserungen, Dokumentation sowie Vorbereitung der Projektabgabe.
+
+#### Arbeitszeiten
+
+10:00 Uhr – 15:00 Uhr
+
+### Durchgeführte Arbeiten
+
+| Aufgabe / Tätigkeit                                                     | Verantwortlich |
+|-------------------------------------------------------------------------|----------------|
+| UI-Design-Feinschliff (Spacing-Anpassungen)                             | Dalina         |
+| Verbesserung der Button-Styles (Primary / Secondary / Tertiary)         | Dalina         |
+| Accessibility-Verbesserung (Lesen-Status farblich besser unterscheidbar)| Dalina         |
+| Zusammenführung und Merge der Design-Änderungen                         | Dalina         |
+| Aktualisierung und Finalisierung des README                             | Ferzana        |
+| Vorbereitung und Aufnahme des Projektvideos                             | Ferzana & Dalina |
+
+---
 
 ## Zusammenarbeit im Team
 
